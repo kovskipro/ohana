@@ -12,6 +12,7 @@
 
 # testing
 /coverage
+/.agents
 
 # next.js
 /.next/
@@ -22,6 +23,9 @@
 
 # misc
 .DS_Store
+desktop.ini
+dev-server.log
+package-lock.json
 *.pem
 
 # debug

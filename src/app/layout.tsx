@@ -1,15 +1,8 @@
 import type { Metadata } from "next";
-import { Plus_Jakarta_Sans } from "next/font/google";
-import "./globals.css";
-
-const plusJakarta = Plus_Jakarta_Sans({
-  variable: "--font-plus-jakarta",
-  subsets: ["latin"],
-});
 
 export const metadata: Metadata = {
   title: "Ohana | Kooperatywa Edukacyjna",
-  description: "Ohana - Kooperatywa Edukacyjna. Strona w trakcie tworzenia.",
+  description: "Ohana - Kooperatywa Edukacyjna. Wspieramy rozwój dzieci i rodzin.",
 };
 
 export default function RootLayout({
@@ -18,11 +11,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="pl" className="dark">
+    <html lang="pl">
       <body
-        className={`${plusJakarta.variable} antialiased font-sans`}
       >
-        {children}
+        <div>
+          {children}
+        </div>
       </body>
     </html>
   );
