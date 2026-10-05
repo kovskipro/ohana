@@ -22,11 +22,3 @@ export {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
-export { OtpInput } from "@/components/ui/otp-input"
-export type { OtpInputProps, OtpStatus } from "@/components/ui/otp-input"
-export { PhoneInput } from "@/components/ui/phone-input"
-export type { PhoneInputProps } from "@/components/ui/phone-input"
-export { ChildrenAgesInput } from "@/components/ui/children-ages-input"
-export type { ChildrenAgesInputProps } from "@/components/ui/children-ages-input"
-export { InterestsInput } from "@/components/ui/interests-input"
-export type { InterestsInputProps } from "@/components/ui/interests-input"

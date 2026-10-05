@@ -23,9 +23,9 @@ import { Avatar } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { ChildrenAgesInput } from "@/components/ui/children-ages-input";
-import { InterestsInput } from "@/components/ui/interests-input";
-import { PhoneInput } from "@/components/ui/phone-input";
+import { Badge } from "@/components/ui/badge";
+import { Label } from "@/components/ui/label";
+import { Plus, Trash2, X } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -65,6 +65,7 @@ export default function ProfilePage() {
   const [togglingMap, setTogglingMap] = useState(false);
   const [mapVisibilityModalOpen, setMapVisibilityModalOpen] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [interestInput, setInterestInput] = useState("");
   const [success, setSuccess] = useState<string | null>(null);
   const [avatarPath, setAvatarPath] = useState<string | null>(null);
   const [avatarOperation, setAvatarOperation] = useState<
@@ -531,18 +532,125 @@ export default function ProfilePage() {
               error={errors.profileName}
             />
 
-            <ChildrenAgesInput
-              numChildren={form.numChildren}
-              ages={form.childrenAges}
-              onNumChildrenChange={(num) => setForm({ ...form, numChildren: num })}
-              onAgesChange={(ages) => setForm({ ...form, childrenAges: ages })}
+            <Input
+              label="Liczba dzieci"
+              type="number"
+              min={0}
+              max={20}
+              value={form.numChildren}
+              onChange={(e) => {
+                const num = Math.max(0, Math.min(20, parseInt(e.target.value, 10) || 0));
+                const newAges = [...form.childrenAges];
+                if (num > form.childrenAges.length) {
+                  newAges.push(...Array(num - form.childrenAges.length).fill(0));
+                } else if (num < form.childrenAges.length) {
+                  newAges.splice(num);
+                }
+                setForm({ ...form, numChildren: num, childrenAges: newAges.length > 0 ? newAges : [0] });
+              }}
               error={errors.numChildren}
             />
 
-            <InterestsInput
-              value={form.interests}
-              onChange={(interests) => setForm({ ...form, interests })}
+            {form.numChildren > 0 && (
+              <div className="flex flex-wrap gap-3">
+                {Array.from({ length: form.numChildren }).map((_, i) => (
+                  <div key={i} className="flex items-end gap-1.5">
+                    <Input
+                      label={`Wiek dziecka ${i + 1}`}
+                      type="number"
+                      min={0}
+                      max={99}
+                      value={form.childrenAges[i] ?? ""}
+                      onChange={(e) => {
+                        const val = parseInt(e.target.value, 10);
+                        const newAges = [...form.childrenAges];
+                        newAges[i] = isNaN(val) ? 0 : Math.max(0, Math.min(99, val));
+                        setForm({ ...form, childrenAges: newAges });
+                      }}
+                      className="w-20"
+                    />
+                    {form.numChildren > 1 && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="xs"
+                        onClick={() => {
+                          const newAges = [...form.childrenAges];
+                          newAges.splice(i, 1);
+                          setForm({
+                            ...form,
+                            numChildren: form.numChildren - 1,
+                            childrenAges: newAges.length > 0 ? newAges : [0],
+                          });
+                        }}
+                        aria-label={`Usuń dziecko ${i + 1}`}
+                      >
+                        <Trash2 className="size-3" />
+                      </Button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {form.numChildren > 0 && form.numChildren < 20 && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setForm({
+                    ...form,
+                    numChildren: form.numChildren + 1,
+                    childrenAges: [...form.childrenAges, 0],
+                  });
+                }}
+              >
+                <Plus className="size-4" />
+                Dodaj dziecko
+              </Button>
+            )}
+
+            <Input
+              label="Zainteresowania"
+              placeholder="Napisz i naciśnij Enter…"
+              value={interestInput}
+              onChange={(e) => setInterestInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  const trimmed = interestInput.trim();
+                  if (trimmed && !form.interests.includes(trimmed)) {
+                    setForm({ ...form, interests: [...form.interests, trimmed] });
+                  }
+                  setInterestInput("");
+                } else if (e.key === "Backspace" && !interestInput && form.interests.length > 0) {
+                  setForm({ ...form, interests: form.interests.slice(0, -1) });
+                }
+              }}
             />
+            {form.interests.length > 0 && (
+              <div className="flex flex-wrap gap-1.5">
+                {form.interests.map((interest: string) => (
+                  <Badge key={interest} variant="secondary" className="text-xs">
+                    {interest}
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setForm({
+                          ...form,
+                          interests: form.interests.filter((i: string) => i !== interest),
+                        })
+                      }
+                      className="ml-1 rounded-full p-0.5 hover:bg-muted-foreground/20"
+                      aria-label={`Usuń ${interest}`}
+                    >
+                      <X className="size-3" />
+                    </button>
+                  </Badge>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -551,8 +659,10 @@ export default function ProfilePage() {
             <CardTitle>Kontakt do rodziny (minimum jeden)</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <PhoneInput
+            <Input
               label="Numer telefonu"
+              type="tel"
+              placeholder="+48 123 456 789"
               value={form.contactPhone}
               onChange={(e) =>
                 setForm({ ...form, contactPhone: e.target.value })
@@ -562,6 +672,7 @@ export default function ProfilePage() {
                   ? getPhoneMessage(form.contactPhone) || errors.contactPhone
                   : errors.contactPhone
               }
+              autoComplete="tel"
             />
 
             <Input

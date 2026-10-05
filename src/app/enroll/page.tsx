@@ -16,7 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
-import { PhoneInput } from "@/components/ui/phone-input";
+
 import { Badge } from "@/components/ui/badge";
 
 const SCHOOL_YEARS = ["2026/2027", "2027/2028", "2028/2029", "2029/2030"];
@@ -401,11 +401,14 @@ export default function EnrollPage() {
               />
             </div>
 
-            <PhoneInput
+            <Input
               label="Numer telefonu"
+              type="tel"
+              placeholder="+48 123 456 789"
               value={parentPhone}
               onChange={(e) => setParentPhone(e.target.value)}
               error={errors.parentPhone}
+              autoComplete="tel"
             />
 
             <Input

@@ -19,17 +19,19 @@ import {
 } from "@/lib/validation";
 
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-} from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { OtpInput } from "@/components/ui/otp-input";
-import { PhoneInput } from "@/components/ui/phone-input";
-import { ChildrenAgesInput } from "@/components/ui/children-ages-input";
-import { InterestsInput } from "@/components/ui/interests-input";
+import { Badge } from "@/components/ui/badge";
+import { Label } from "@/components/ui/label";
+import {
+  InputOTP,
+  InputOTPGroup,
+  InputOTPSlot,
+  InputOTPSeparator,
+} from "@/components/ui/input-otp";
+import { Plus, Trash2, X } from "lucide-react";
 
 type RegistrationStep = "part1" | "part2" | "confirm";
 
@@ -107,6 +109,7 @@ export default function RegisterPage() {
     agreeDataProcessing: false,
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [interestInput, setInterestInput] = useState("");
 
   // Krok 3: kod OTP z emaila.
   const [otp, setOtp] = useState("");
@@ -356,24 +359,126 @@ export default function RegisterPage() {
                 autoComplete="organization"
               />
 
-              <ChildrenAgesInput
-                numChildren={data.numChildren}
-                ages={data.childrenAges}
-                onNumChildrenChange={(num) =>
-                  setData({ ...data, numChildren: num })
-                }
-                onAgesChange={(ages) =>
-                  setData({ ...data, childrenAges: ages })
-                }
+              <Input
+                label="Liczba dzieci"
+                type="number"
+                min={0}
+                max={20}
+                value={data.numChildren}
+                onChange={(e) => {
+                  const num = Math.max(0, Math.min(20, parseInt(e.target.value, 10) || 0));
+                  const newAges = [...data.childrenAges];
+                  if (num > data.childrenAges.length) {
+                    newAges.push(...Array(num - data.childrenAges.length).fill(0));
+                  } else if (num < data.childrenAges.length) {
+                    newAges.splice(num);
+                  }
+                  setData({ ...data, numChildren: num, childrenAges: newAges.length > 0 ? newAges : [0] });
+                }}
                 error={errors.numChildren}
               />
 
-              <InterestsInput
-                value={data.interests}
-                onChange={(interests) => setData({ ...data, interests })}
+              {data.numChildren > 0 && (
+                <div className="flex flex-wrap gap-3">
+                  {Array.from({ length: data.numChildren }).map((_, i) => (
+                    <div key={i} className="flex items-end gap-1.5">
+                      <Input
+                        label={`Wiek dziecia ${i + 1}`}
+                        type="number"
+                        min={0}
+                        max={99}
+                        value={data.childrenAges[i] ?? ""}
+                        onChange={(e) => {
+                          const val = parseInt(e.target.value, 10);
+                          const newAges = [...data.childrenAges];
+                          newAges[i] = isNaN(val) ? 0 : Math.max(0, Math.min(99, val));
+                          setData({ ...data, childrenAges: newAges });
+                        }}
+                        className="w-20"
+                      />
+                      {data.numChildren > 1 && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="xs"
+                          onClick={() => {
+                            const newAges = [...data.childrenAges];
+                            newAges.splice(i, 1);
+                            setData({
+                              ...data,
+                              numChildren: data.numChildren - 1,
+                              childrenAges: newAges.length > 0 ? newAges : [0],
+                            });
+                          }}
+                          aria-label={`Usuń dziecko ${i + 1}`}
+                        >
+                          <Trash2 className="size-3" />
+                        </Button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {data.numChildren > 0 && data.numChildren < 20 && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setData({
+                      ...data,
+                      numChildren: data.numChildren + 1,
+                      childrenAges: [...data.childrenAges, 0],
+                    });
+                  }}
+                >
+                  <Plus className="size-4" />
+                  Dodaj dziecko
+                </Button>
+              )}
+
+              <Input
+                label="Zainteresowania"
+                placeholder="Napisz i naciśnij Enter…"
+                value={interestInput}
+                onChange={(e) => setInterestInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    const trimmed = interestInput.trim();
+                    if (trimmed && !data.interests.includes(trimmed)) {
+                      setData({ ...data, interests: [...data.interests, trimmed] });
+                    }
+                    setInterestInput("");
+                  } else if (e.key === "Backspace" && !interestInput && data.interests.length > 0) {
+                    setData({ ...data, interests: data.interests.slice(0, -1) });
+                  }
+                }}
                 error={errors.interests}
-                placeholder="Dodaj zainteresowanie i naciśnij Enter…"
               />
+              {data.interests.length > 0 && (
+                <div className="flex flex-wrap gap-1.5">
+                  {data.interests.map((interest: string) => (
+                    <Badge key={interest} variant="secondary" className="text-xs">
+                      {interest}
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setData({
+                            ...data,
+                            interests: data.interests.filter((i: string) => i !== interest),
+                          })
+                        }
+                        className="ml-1 rounded-full p-0.5 hover:bg-muted-foreground/20"
+                        aria-label={`Usuń ${interest}`}
+                      >
+                        <X className="size-3" />
+                      </button>
+                    </Badge>
+                  ))}
+                </div>
+              )}
             </CardContent></Card>
 
             <Card><CardContent className="pt-6">
@@ -381,16 +486,18 @@ export default function RegisterPage() {
                 Kontakt do rodziny (minimum jeden)
               </p>
 
-              <PhoneInput
-                label="Numer telefonu"
-                value={data.contactPhone}
-                onChange={(e) =>
-                  setData({ ...data, contactPhone: e.target.value })
-                }
-                error={data.contactPhone ? getPhoneMessage(data.contactPhone) || errors.contactPhone : errors.contactPhone}
-                name="contactPhone"
-                autoComplete="tel"
-              />
+               <Input
+                 label="Numer telefonu"
+                 type="tel"
+                 placeholder="+48 123 456 789"
+                 value={data.contactPhone}
+                 onChange={(e) =>
+                   setData({ ...data, contactPhone: e.target.value })
+                 }
+                 error={data.contactPhone ? getPhoneMessage(data.contactPhone) || errors.contactPhone : errors.contactPhone}
+                 name="contactPhone"
+                 autoComplete="tel"
+               />
 
               <Input
                 label="Email"
@@ -641,16 +748,37 @@ export default function RegisterPage() {
                 wysłaliśmy 6-cyfrowy kod potwierdzający. Wpisz go poniżej.
               </p>
 
-              <OtpInput
-                label="Kod potwierdzający"
-                length={6}
-                mode="numeric"
-                groupEvery={3}
-                onChange={setOtp}
-                status={errors.otp ? "error" : "idle"}
-                errorMessage={errors.otp}
-                disabled={submitting}
-              />
+               <div className="space-y-2">
+                 <Label htmlFor="otp" className={errors.otp ? "text-destructive" : ""}>
+                   Kod potwierdzający
+                 </Label>
+                 <InputOTP
+                   id="otp"
+                   maxLength={6}
+                   value={otp}
+                   onChange={setOtp}
+                   disabled={submitting}
+                   inputMode="numeric"
+                   data-invalid={!!errors.otp}
+                   containerClassName="justify-center sm:justify-start"
+                   className="mx-auto sm:mx-0"
+                 >
+                   <InputOTPGroup>
+                     <InputOTPSlot index={0} />
+                     <InputOTPSlot index={1} />
+                     <InputOTPSlot index={2} />
+                   </InputOTPGroup>
+                   <InputOTPSeparator />
+                   <InputOTPGroup>
+                     <InputOTPSlot index={3} />
+                     <InputOTPSlot index={4} />
+                     <InputOTPSlot index={5} />
+                   </InputOTPGroup>
+                 </InputOTP>
+                 {errors.otp && (
+                   <p className="text-xs text-destructive">{errors.otp}</p>
+                 )}
+               </div>
             </CardContent></Card>
 
             {errors.submit && (
