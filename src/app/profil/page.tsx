@@ -24,7 +24,7 @@ import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
-import { Field, FieldLabel, FieldError } from "@/components/ui/field";
+import { Field, FieldLabel, FieldError, FieldContent, FieldDescription } from "@/components/ui/field";
 import { Plus, Trash2, X } from "lucide-react";
 import {
   Dialog,
@@ -804,26 +804,30 @@ export default function ProfilePage() {
           <CardTitle>Widoczność na mapie</CardTitle>
         </CardHeader>
         <CardContent>
-          <Switch
-            checked={profile.map_visible}
-            onCheckedChange={handleToggleMap}
-            disabled={togglingMap}
-            aria-label="Widoczność na mapie rodzin"
-            label="Widoczność na mapie rodzin"
-            description={
-              <>
-                Gdy włączone, Twoja rodzina pojawi się na publicznej{" "}
-                <Link
-                  href="/mapa"
-                  className="text-foreground underline underline-offset-4 hover:text-primary"
-                >
-                  mapie rodzin
-                </Link>
-                . Pokazuje dane profilu, podane kontakty i przybliżoną
-                lokalizację.
-              </>
-            }
-          />
+          <Field orientation="horizontal">
+            <Switch
+              id="mapVisible"
+              checked={profile.map_visible}
+              onCheckedChange={handleToggleMap}
+              disabled={togglingMap}
+            />
+            <FieldContent>
+              <FieldLabel htmlFor="mapVisible">Widoczność na mapie rodzin</FieldLabel>
+              <FieldDescription>
+                <>
+                  Gdy włączone, Twoja rodzina pojawi się na publicznej{" "}
+                  <Link
+                    href="/mapa"
+                    className="text-foreground underline underline-offset-4 hover:text-primary"
+                  >
+                    mapie rodzin
+                  </Link>
+                  . Pokazuje dane profilu, podane kontakty i przybliżoną
+                  lokalizację.
+                </>
+              </FieldDescription>
+            </FieldContent>
+          </Field>
           {errors.submit && (
             <p className="text-xs text-destructive">{errors.submit}</p>
           )}

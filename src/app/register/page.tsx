@@ -24,7 +24,7 @@ import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
-import { Field, FieldLabel, FieldError } from "@/components/ui/field";
+import { Field, FieldLabel, FieldError, FieldContent, FieldDescription } from "@/components/ui/field";
 import {
   InputOTP,
   InputOTPGroup,
@@ -635,15 +635,17 @@ export default function RegisterPage() {
             </CardContent></Card>
 
             <Card><CardContent className="pt-6">
+            <Field orientation="horizontal">
               <Switch
+                id="mapVisible"
                 checked={data.mapVisible}
                 onCheckedChange={(checked) =>
                   setData({ ...data, mapVisible: checked })
                 }
-                disabled={false}
-                aria-label="Widoczność na mapie rodzin"
-                label="Widoczność na mapie rodzin"
-                description={
+              />
+              <FieldContent>
+                <FieldLabel htmlFor="mapVisible">Widoczność na mapie rodzin</FieldLabel>
+                <FieldDescription>
                   <>
                     Po włączeniu Twoja rodzina pojawi się na publicznej{" "}
                     <Link href="/mapa" className="underline">
@@ -651,8 +653,9 @@ export default function RegisterPage() {
                     </Link>
                     . Publikowane są wyłęcznie dane przeznaczone do mapy — nazwa rodziny, miejscowość i kontakty. Prywatne dane zapisowe (adresy, dane dzieci) nigdy nie są publikowane.
                   </>
-                }
-              />
+                </FieldDescription>
+              </FieldContent>
+            </Field>
             </CardContent></Card>
 
             <Button type="submit" className="w-full">
