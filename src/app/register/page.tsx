@@ -18,6 +18,19 @@ import {
   VOIVODESHIPS,
 } from "@/lib/validation";
 
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Select } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+import { OtpInput } from "@/components/ui/otp-input";
+import { PhoneInput } from "@/components/ui/phone-input";
+import { ChildrenAgesInput } from "@/components/ui/children-ages-input";
+import { InterestsInput } from "@/components/ui/interests-input";
+
 type RegistrationStep = "part1" | "part2" | "confirm";
 
 interface RegistrationData {
@@ -319,324 +332,358 @@ export default function RegisterPage() {
   };
 
   return (
-    <div>
-      <main>
-        <div>
-          {step === "part1" && (
-            <>
-              <div>
-                <h1>
-                  Zarejestruj się
-                </h1>
-                <p>
-                  Krok 1: Dane rodziny
-                </p>
-              </div>
+    <main className="max-w-2xl mx-auto py-8">
+      {step === "part1" && (
+        <>
+          <div className="mb-6">
+            <h1 className="font-heading text-3xl font-bold">
+              Zarejestruj się
+            </h1>
+            <p className="text-sm text-muted-foreground">
+              Krok 1: Dane rodziny
+            </p>
+          </div>
 
-              <form noValidate onSubmit={(e) => { e.preventDefault(); handleNext(); }}>
-                <Card><CardContent>
-                  <Input
-                    label="Nazwa profilu (np. Kossakowscy)"
-                    placeholder="Nazwa rodziny"
-                    value={data.profileName}
-                    onChange={(e) => setData({ ...data, profileName: e.target.value })}
-                    error={errors.profileName}
-                  />
+          <form noValidate onSubmit={(e) => { e.preventDefault(); handleNext(); }} className="flex flex-col gap-6">
+            <Card><CardContent className="pt-6">
+              <Input
+                label="Nazwa profilu (np. Kossakowscy)"
+                placeholder="Nazwa rodziny"
+                value={data.profileName}
+                onChange={(e) => setData({ ...data, profileName: e.target.value })}
+                error={errors.profileName}
+                name="profileName"
+                autoComplete="organization"
+              />
 
-                  <ChildrenAgesInput
-                    numChildren={data.numChildren}
-                    ages={data.childrenAges}
-                    onNumChildrenChange={(num) =>
-                      setData({ ...data, numChildren: num })
-                    }
-                    onAgesChange={(ages) =>
-                      setData({ ...data, childrenAges: ages })
-                    }
-                    error={errors.numChildren}
-                  />
+              <ChildrenAgesInput
+                numChildren={data.numChildren}
+                ages={data.childrenAges}
+                onNumChildrenChange={(num) =>
+                  setData({ ...data, numChildren: num })
+                }
+                onAgesChange={(ages) =>
+                  setData({ ...data, childrenAges: ages })
+                }
+                error={errors.numChildren}
+              />
 
-                  <InterestsInput
-                    value={data.interests}
-                    onChange={(interests) => setData({ ...data, interests })}
-                    error={errors.interests}
-                  />
-                </CardContent></Card>
+              <InterestsInput
+                value={data.interests}
+                onChange={(interests) => setData({ ...data, interests })}
+                error={errors.interests}
+                placeholder="Dodaj zainteresowanie i naciśnij Enter…"
+              />
+            </CardContent></Card>
 
-                <Card><CardContent>
-                  <p>
-                    Kontakt do rodziny (minimum jeden)
-                  </p>
+            <Card><CardContent className="pt-6">
+              <p className="text-sm font-medium mb-3">
+                Kontakt do rodziny (minimum jeden)
+              </p>
 
-                  <PhoneInput
-                    label="Numer telefonu"
-                    value={data.contactPhone}
+              <PhoneInput
+                label="Numer telefonu"
+                value={data.contactPhone}
+                onChange={(e) =>
+                  setData({ ...data, contactPhone: e.target.value })
+                }
+                error={data.contactPhone ? getPhoneMessage(data.contactPhone) || errors.contactPhone : errors.contactPhone}
+                name="contactPhone"
+                autoComplete="tel"
+              />
+
+              <Input
+                label="Email"
+                type="email"
+                placeholder="rodzina@email.com"
+                value={data.contactEmail}
+                onChange={(e) =>
+                  setData({ ...data, contactEmail: e.target.value })
+                }
+                error={data.contactEmail ? getEmailMessage(data.contactEmail) || errors.contactEmail : errors.contactEmail}
+                name="contactEmail"
+                autoComplete="email"
+              />
+
+              <Input
+                label="Profil Facebook (link)"
+                placeholder="https://facebook.com/..."
+                value={data.contactFb}
+                onChange={(e) =>
+                  setData({ ...data, contactFb: e.target.value })
+                }
+                name="contactFb"
+                autoComplete="off"
+              />
+
+              <Input
+                label="Profil Instagram"
+                placeholder="@username"
+                value={data.contactInstagram}
+                onChange={(e) =>
+                  setData({ ...data, contactInstagram: e.target.value })
+                }
+                name="contactInstagram"
+                autoComplete="off"
+              />
+
+              {errors.contact && (
+                <p className="text-xs text-destructive">{errors.contact}</p>
+              )}
+            </CardContent></Card>
+
+            <Card><CardContent className="pt-6">
+              <Input
+                label="Miejscowość"
+                placeholder="Warszawa"
+                value={data.city}
+                onChange={(e) => setData({ ...data, city: e.target.value })}
+                error={errors.city}
+                name="city"
+                autoComplete="address-line2"
+              />
+
+              <Input
+                label="Kod pocztowy"
+                placeholder="XX-XXX"
+                value={data.postalCode}
+                onChange={(e) => setData({ ...data, postalCode: e.target.value })}
+                error={errors.postalCode}
+                name="postalCode"
+                autoComplete="postal-code"
+              />
+
+              <Select
+                label="Województwo"
+                options={VOIVODESHIPS.map((v) => ({ value: v, label: v }))}
+                value={data.voivodeship}
+                onChange={(value) => setData({ ...data, voivodeship: value })}
+                error={errors.voivodeship}
+                name="voivodeship"
+                placeholder="Wybierz województwo"
+              />
+            </CardContent></Card>
+
+            <Card><CardContent className="pt-6">
+              <Switch
+                checked={data.mapVisible}
+                onCheckedChange={(checked) =>
+                  setData({ ...data, mapVisible: checked })
+                }
+                disabled={false}
+                aria-label="Widoczność na mapie rodzin"
+                label="Widoczność na mapie rodzin"
+                description={
+                  <>
+                    Po włączeniu Twoja rodzina pojawi się na publicznej{" "}
+                    <Link href="/mapa" className="underline">
+                      mapie rodzin
+                    </Link>
+                    . Publikowane są wyłęcznie dane przeznaczone do mapy — nazwa rodziny, miejscowość i kontakty. Prywatne dane zapisowe (adresy, dane dzieci) nigdy nie są publikowane.
+                  </>
+                }
+              />
+            </CardContent></Card>
+
+            <Button type="submit" className="w-full">
+              Dalej
+            </Button>
+          </form>
+
+          <div className="mt-4 text-center text-sm">
+            Masz już konto?{" "}
+            <Link
+              href="/login"
+              className="text-foreground underline underline-offset-4 hover:text-primary"
+            >
+              Zaloguj się
+            </Link>
+          </div>
+        </>
+      )}
+
+      {step === "part2" && (
+        <>
+          <div className="mb-6">
+            <h1 className="font-heading text-3xl font-bold">
+              Zarejestruj się
+            </h1>
+            <p className="text-sm text-muted-foreground">
+              Krok 2: Konto i zgody
+            </p>
+          </div>
+
+          <form noValidate onSubmit={handleSubmit} className="flex flex-col gap-6">
+            <Card><CardContent className="pt-6">
+              <p className="text-sm font-medium mb-3">
+                Dane logowania
+              </p>
+
+              <Input
+                label="Email"
+                type="email"
+                placeholder="email@example.com"
+                value={data.email}
+                onChange={(e) =>
+                  setData({ ...data, email: e.target.value })
+                }
+                error={data.email ? getEmailMessage(data.email) || errors.email : errors.email}
+                name="email"
+                autoComplete="email"
+              />
+
+              <Input
+                label="Hasło"
+                type="password"
+                placeholder="••••••••"
+                value={data.password}
+                onChange={(e) =>
+                  setData({ ...data, password: e.target.value })
+                }
+                error={errors.password}
+                name="password"
+                autoComplete="new-password"
+              />
+
+              <Input
+                label="Powtórz hasło"
+                type="password"
+                placeholder="••••••••"
+                value={data.passwordConfirm}
+                onChange={(e) =>
+                  setData({ ...data, passwordConfirm: e.target.value })
+                }
+                error={errors.passwordConfirm}
+                name="password_confirm"
+                autoComplete="new-password"
+              />
+            </CardContent></Card>
+
+            <Card><CardContent className="pt-6">
+              <div className="flex flex-col gap-3">
+                <label className="flex items-start gap-3">
+                  <input
+                    type="checkbox"
+                    checked={data.agreeDataProcessing}
                     onChange={(e) =>
-                      setData({ ...data, contactPhone: e.target.value })
+                      setData({
+                        ...data,
+                        agreeDataProcessing: e.target.checked,
+                      })
                     }
-                    error={data.contactPhone ? getPhoneMessage(data.contactPhone) || errors.contactPhone : errors.contactPhone}
+                    className="mt-0.5 size-4 rounded border-border text-primary focus:ring-ring"
                   />
+                  <span className="text-sm">
+                    Zgadzam się na przetwarzanie moich danych do celów
+                    rejestracji w Ohana.
+                  </span>
+                </label>
 
-                  <Input
-                    label="Email"
-                    type="email"
-                    placeholder="rodzina@email.com"
-                    value={data.contactEmail}
+                <label className="flex items-start gap-3">
+                  <input
+                    type="checkbox"
+                    checked={data.agreePrivacy}
                     onChange={(e) =>
-                      setData({ ...data, contactEmail: e.target.value })
+                      setData({ ...data, agreePrivacy: e.target.checked })
                     }
-                    error={data.contactEmail ? getEmailMessage(data.contactEmail) || errors.contactEmail : errors.contactEmail}
+                    className="mt-0.5 size-4 rounded border-border text-primary focus:ring-ring"
                   />
+                  <span className="text-sm">
+                    Zapoznałem się z{" "}
+                    <Link
+                      href="/privacy"
+                      target="_blank"
+                      className="text-foreground underline underline-offset-4 hover:text-primary"
+                    >
+                      polityką prywatności
+                    </Link>
+                  </span>
+                </label>
 
-                  <Input
-                    label="Profil Facebook (link)"
-                    placeholder="https://facebook.com/..."
-                    value={data.contactFb}
-                    onChange={(e) =>
-                      setData({ ...data, contactFb: e.target.value })
-                    }
-                  />
-
-                  <Input
-                    label="Profil Instagram"
-                    placeholder="@username"
-                    value={data.contactInstagram}
-                    onChange={(e) =>
-                      setData({ ...data, contactInstagram: e.target.value })
-                    }
-                  />
-
-                  {errors.contact && (
-                    <p>{errors.contact}</p>
-                  )}
-                </CardContent></Card>
-
-                <Card><CardContent>
-                  <Input
-                    label="Miejscowość"
-                    placeholder="Warszawa"
-                    value={data.city}
-                    onChange={(e) => setData({ ...data, city: e.target.value })}
-                    error={errors.city}
-                  />
-
-                  <Input
-                    label="Kod pocztowy"
-                    placeholder="XX-XXX"
-                    value={data.postalCode}
-                    onChange={(e) => setData({ ...data, postalCode: e.target.value })}
-                    error={errors.postalCode}
-                  />
-
-                  <Select
-                    label="Województwo"
-                    options={VOIVODESHIPS.map((v) => ({ value: v, label: v }))}
-                    value={data.voivodeship}
-                    onChange={(value) => setData({ ...data, voivodeship: value })}
-                    error={errors.voivodeship}
-                  />
-                </CardContent></Card>
-
-                <Card><CardContent>
-                  <Switch
-                    checked={data.mapVisible}
-                    onCheckedChange={(checked) =>
-                      setData({ ...data, mapVisible: checked })
-                    }
-                    aria-label="Widoczność na mapie rodzin"
-                    label="Widoczność na mapie rodzin"
-                    description="Po włączeniu Twoja rodzina pojawi się na publicznej mapie Ohany. Publikowane są wyłącznie dane przeznaczone do mapy — nazwa rodziny, miejscowość i kontakty. Prywatne dane zapisowe (adresy, dane dzieci) nigdy nie są publikowane."
-                  />
-                </CardContent></Card>
-
-                <Button type="submit">
-                  Dalej
-                </Button>
-              </form>
-
-              <div>
-                Masz już konto?{" "}
-                <Link
-                  href="/login"
-                >
-                  Zaloguj się
-                </Link>
-              </div>
-            </>
-          )}
-
-          {step === "part2" && (
-            <>
-              <div>
-                <h1>
-                  Zarejestruj się
-                </h1>
-                <p>
-                  Krok 2: Konto i zgody
-                </p>
-              </div>
-
-              <form noValidate onSubmit={handleSubmit}>
-                <Card><CardContent>
-                  <p>
-                    Dane logowania
-                  </p>
-
-                  <Input
-                    label="Email"
-                    type="email"
-                    placeholder="email@example.com"
-                    value={data.email}
-                    onChange={(e) =>
-                      setData({ ...data, email: e.target.value })
-                    }
-                    error={data.email ? getEmailMessage(data.email) || errors.email : errors.email}
-                  />
-
-                  <Input
-                    label="Hasło"
-                    type="password"
-                    placeholder="••••••••"
-                    value={data.password}
-                    onChange={(e) =>
-                      setData({ ...data, password: e.target.value })
-                    }
-                    error={errors.password}
-                  />
-
-                  <Input
-                    label="Powtórz hasło"
-                    type="password"
-                    placeholder="••••••••"
-                    value={data.passwordConfirm}
-                    onChange={(e) =>
-                      setData({ ...data, passwordConfirm: e.target.value })
-                    }
-                    error={errors.passwordConfirm}
-                  />
-                </CardContent></Card>
-
-                <Card><CardContent>
-                  <label>
-                    <input
-                      type="checkbox"
-                      checked={data.agreeDataProcessing}
-                      onChange={(e) =>
-                        setData({
-                          ...data,
-                          agreeDataProcessing: e.target.checked,
-                        })
-                      }
-                    />
-                    <span>
-                      Zgadzam się na przetwarzanie moich danych do celów
-                      rejestracji w Ohana.
-                    </span>
-                  </label>
-
-                  <label>
-                    <input
-                      type="checkbox"
-                      checked={data.agreePrivacy}
-                      onChange={(e) =>
-                        setData({ ...data, agreePrivacy: e.target.checked })
-                      }
-                    />
-                    <span>
-                      Zapoznałem się z{" "}
-                      <Link
-                        href="/privacy"
-                        target="_blank"
-                      >
-                        polityką prywatności
-                      </Link>
-                    </span>
-                  </label>
-
-                  {errors.agreeDataProcessing && (
-                    <p>
-                      {errors.agreeDataProcessing}
-                    </p>
-                  )}
-                  {errors.agreePrivacy && (
-                    <p>{errors.agreePrivacy}</p>
-                  )}
-                </CardContent></Card>
-
-                {errors.submit && (
-                  <div>
-                    {errors.submit}
-                  </div>
+                {errors.agreeDataProcessing && (
+                  <p className="text-xs text-destructive">{errors.agreeDataProcessing}</p>
                 )}
-
-                <Button type="submit" disabled={submitting}>
-                  {submitting ? "Rejestrowanie..." : "Zarejestruj się"}
-                </Button>
-              </form>
-            </>
-          )}
-
-          {step === "confirm" && (
-            <>
-              <div>
-                <h1>
-                  Potwierdź email
-                </h1>
-                <p>
-                  Krok 3: Kod z wiadomości email
-                </p>
+                {errors.agreePrivacy && (
+                  <p className="text-xs text-destructive">{errors.agreePrivacy}</p>
+                )}
               </div>
+            </CardContent></Card>
 
-              <form noValidate onSubmit={handleOtpSubmit}>
-                <Card><CardContent>
-                  <p>
-                    Na adres{" "}
-                    <span>{data.email}</span>{" "}
-                    wysłaliśmy 6-cyfrowy kod potwierdzający. Wpisz go poniżej.
-                  </p>
+            {errors.submit && (
+              <div className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
+                {errors.submit}
+              </div>
+            )}
 
-                  <OtpInput
-                    label="Kod potwierdzający"
-                    length={6}
-                    mode="numeric"
-                    groupEvery={3}
-                    onChange={setOtp}
-                    status={errors.otp ? "error" : "idle"}
-                    errorMessage={errors.otp}
-                    disabled={submitting}
-                  />
-                </CardContent></Card>
+            <Button type="submit" disabled={submitting} className="w-full">
+              {submitting ? "Rejestrowanie..." : "Zarejestruj się"}
+            </Button>
+          </form>
+        </>
+      )}
 
-                {errors.submit && (
-                  <div>
-                    {errors.submit}
-                  </div>
-                )}
+      {step === "confirm" && (
+        <>
+          <div className="mb-6">
+            <h1 className="font-heading text-3xl font-bold">
+              Potwierdź email
+            </h1>
+            <p className="text-sm text-muted-foreground">
+              Krok 3: Kod z wiadomości email
+            </p>
+          </div>
 
-                <Button
-                  type="submit"
-                  disabled={otp.length !== 6 || submitting}
-                >
-                  {submitting ? "Potwierdzanie..." : "Potwierdź kod"}
-                </Button>
+          <form noValidate onSubmit={handleOtpSubmit} className="flex flex-col gap-6">
+            <Card><CardContent className="pt-6">
+              <p className="text-sm">
+                Na adres{" "}
+                <span className="font-medium">{data.email}</span>{" "}
+                wysłaliśmy 6-cyfrowy kod potwierdzający. Wpisz go poniżej.
+              </p>
 
-                {resendIn > 0 ? (
-                  <p>
-                    Możesz poprosić o nowy kod za {resendIn} s
-                  </p>
-                ) : (
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    onClick={handleResend}
-                  >
-                    Wyślij kod ponownie
-                  </Button>
-                )}
-              </form>
-            </>
-          )}
-        </div>
-      </main>
-    </div>
+              <OtpInput
+                label="Kod potwierdzający"
+                length={6}
+                mode="numeric"
+                groupEvery={3}
+                onChange={setOtp}
+                status={errors.otp ? "error" : "idle"}
+                errorMessage={errors.otp}
+                disabled={submitting}
+              />
+            </CardContent></Card>
+
+            {errors.submit && (
+              <div className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
+                {errors.submit}
+              </div>
+            )}
+
+            <Button
+              type="submit"
+              disabled={otp.length !== 6 || submitting}
+              className="w-full"
+            >
+              {submitting ? "Potwierdzanie..." : "Potwierdź kod"}
+            </Button>
+
+            {resendIn > 0 ? (
+              <p className="text-sm text-muted-foreground text-center">
+                Możesz poprosić o nowy kod za {resendIn} s
+              </p>
+            ) : (
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={handleResend}
+                className="w-full"
+              >
+                Wyślij kod ponownie
+              </Button>
+            )}
+          </form>
+        </>
+      )}
+    </main>
   );
 }

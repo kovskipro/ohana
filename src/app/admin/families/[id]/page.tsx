@@ -6,6 +6,10 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import type { Database } from "@/lib/supabase/types";
 
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+
 type Child = Database["public"]["Tables"]["children"]["Row"];
 type Enrollment = Database["public"]["Tables"]["enrollments"]["Row"];
 
@@ -91,30 +95,33 @@ export default function FamilyDetailPage() {
   }
 
   return (
-    <main>
+    <main className="py-8">
       <Link
         href="/admin/families"
+        className="text-sm text-foreground underline underline-offset-4 hover:text-primary"
       >
         ← Wróć do rodzin
       </Link>
 
-      <h1>
-        {family.profile_name || "Rodzina"}
-      </h1>
-      <p>
-        Konto rodziny — dołączyła{" "}
-        {new Date(family.created_at).toLocaleDateString("pl-PL")}
-      </p>
+      <div className="mt-4">
+        <h1 className="font-heading text-2xl font-bold">
+          {family.profile_name || "Rodzina"}
+        </h1>
+        <p className="text-sm text-muted-foreground">
+          Konto rodziny — dołączyła{" "}
+          {new Date(family.created_at).toLocaleDateString("pl-PL")}
+        </p>
+      </div>
 
-      <div>
+      <div className="mt-6 space-y-6">
         <Card>
           <CardHeader>
             <CardTitle>Adres</CardTitle>
           </CardHeader>
           <CardContent>
             <div>
-              <p>{family.city}, {family.postal_code}</p>
-              <p>{family.voivodeship}</p>
+              <p className="text-sm">{family.city}, {family.postal_code}</p>
+              <p className="text-sm">{family.voivodeship}</p>
             </div>
           </CardContent>
         </Card>
@@ -124,7 +131,7 @@ export default function FamilyDetailPage() {
             <CardTitle>Kontakt</CardTitle>
           </CardHeader>
           <CardContent>
-            <div>
+            <div className="space-y-1 text-sm">
               <p>Email: {family.contact_email || "—"}</p>
               <p>Telefon: {family.contact_phone || "—"}</p>
               <p>FB: {family.contact_fb || "—"}</p>
@@ -134,14 +141,14 @@ export default function FamilyDetailPage() {
         </Card>
       </div>
 
-      <Separator />
+      <Separator className="my-6" />
 
       <Card>
         <CardHeader>
           <CardTitle>O rodzinie</CardTitle>
         </CardHeader>
         <CardContent>
-          <div>
+          <div className="space-y-2 text-sm">
             <p>Liczba dzieci: {family.num_children}</p>
             <p>Wiek dzieci: {family.children_ages.join(", ") || "—"}</p>
             {family.interests.length > 0 && (
@@ -152,66 +159,75 @@ export default function FamilyDetailPage() {
         </CardContent>
       </Card>
 
-      <Separator />
+      <Separator className="my-6" />
 
       <Card>
         <CardHeader>
           <CardTitle>Dzieci ({family.children.length})</CardTitle>
         </CardHeader>
         <CardContent>
-          <div>
+          <div className="space-y-3">
             {family.children.map((child) => (
               <Card key={child.id}>
-                <p>
-                  {child.first_name} {child.last_name}
-                </p>
-                <p>
-                  {child.birth_date} · {child.birth_place} · PESEL {child.pesel}
-                </p>
+                <CardContent className="pt-4">
+                  <div className="space-y-1">
+                    <p className="font-medium">
+                      {child.first_name} {child.last_name}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      {child.birth_date} · {child.birth_place} · PESEL {child.pesel}
+                    </p>
+                  </div>
+                </CardContent>
               </Card>
             ))}
             {family.children.length === 0 && (
-              <p>Brak dzieci.</p>
+              <p className="text-sm text-muted-foreground">Brak dzieci.</p>
             )}
           </div>
         </CardContent>
       </Card>
 
-      <Separator />
+      <Separator className="my-6" />
 
       <Card>
         <CardHeader>
           <CardTitle>Zapisy ({family.enrollments.length})</CardTitle>
         </CardHeader>
         <CardContent>
-          <div>
+          <div className="space-y-3">
             {family.enrollments.map((enrollment) => (
-              <Card
-                key={enrollment.id}
-              >
-                <p>
-                  Rok szkolny {enrollment.school_year}
-                </p>
-                <Badge
-                  variant={
-                    enrollment.status === "accepted"
-                      ? "default"
-                      : enrollment.status === "rejected"
-                        ? "destructive"
-                        : "secondary"
-                  }
-                >
-                  {enrollment.status}
-                </Badge>
-                <Link
-                  href={`/admin/enrollments/${enrollment.id}`}
-                >
-                  Szczegóły →
-                </Link>
+              <Card key={enrollment.id}>
+                <CardContent className="pt-4">
+                  <div className="flex items-start justify-between">
+                    <div className="space-y-1">
+                      <p className="text-sm">
+                        Rok szkolny {enrollment.school_year}
+                      </p>
+                      <Badge
+                        variant={
+                          enrollment.status === "accepted"
+                            ? "default"
+                            : enrollment.status === "rejected"
+                              ? "destructive"
+                              : "secondary"
+                        }
+                      >
+                        {enrollment.status}
+                      </Badge>
+                    </div>
+                    <Link
+                      href={`/admin/enrollments/${enrollment.id}`}
+                      className="text-sm text-foreground underline underline-offset-4 hover:text-primary"
+                    >
+                      Szczegóły →
+                    </Link>
+                  </div>
+                </CardContent>
               </Card>
             ))}
             {family.enrollments.length === 0 && (
-              <p>Brak zapisów.</p>
+              <p className="text-sm text-muted-foreground">Brak zapisów.</p>
             )}
           </div>
         </CardContent>

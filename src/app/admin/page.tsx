@@ -5,6 +5,11 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import type { Database } from "@/lib/supabase/types";
 
+import { Card, CardContent } from "@/components/ui/card";
+import { Select } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+
 type Enrollment = Database["public"]["Tables"]["enrollments"]["Row"];
 type Profile = Database["public"]["Tables"]["profiles"]["Row"];
 type Child = Database["public"]["Tables"]["children"]["Row"];
@@ -112,174 +117,161 @@ export default function AdminPage() {
   };
 
   return (
-    <main>
-      <h1>
-        Panel administratora
-      </h1>
-      <p>
-        Zarządzanie zgłoszeniami rodzin
-      </p>
+    <main className="py-8">
+      <div className="mb-6">
+        <h1 className="font-heading text-3xl font-bold">Panel administratora</h1>
+        <p className="text-sm text-muted-foreground">
+          Zarządzanie zgłoszeniami rodzin
+        </p>
+      </div>
 
-      <div>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <Card>
-          <CardContent>
-            <p>
-              Oczekujące
-            </p>
-            <p>
-              {counts.pending}
-            </p>
+          <CardContent className="pt-6">
+            <p className="text-sm text-muted-foreground">Oczekujące</p>
+            <p className="text-2xl font-bold">{counts.pending}</p>
           </CardContent>
         </Card>
         <Card>
-          <CardContent>
-            <p>
-              Zaakceptowane
-            </p>
-            <p>
-              {counts.accepted}
-            </p>
+          <CardContent className="pt-6">
+            <p className="text-sm text-muted-foreground">Zaakceptowane</p>
+            <p className="text-2xl font-bold">{counts.accepted}</p>
           </CardContent>
         </Card>
         <Card>
-          <CardContent>
-            <p>
-              Odrzucone
-            </p>
-            <p>
-              {counts.rejected}
-            </p>
+          <CardContent className="pt-6">
+            <p className="text-sm text-muted-foreground">Odrzucone</p>
+            <p className="text-2xl font-bold">{counts.rejected}</p>
           </CardContent>
         </Card>
       </div>
 
-      <div>
-        <div>
-          <Select
-            label="Status"
-            options={STATUS_OPTIONS}
-            value={statusFilter}
-            onChange={setStatusFilter}
-          />
-        </div>
-        <div>
-          <Select
-            label="Rok szkolny"
-            options={[
-              { value: "all", label: "Wszystkie lata" },
-              ...years.map((y) => ({ value: y, label: y })),
-            ]}
-            value={yearFilter}
-            onChange={setYearFilter}
-          />
-        </div>
+      <div className="mb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+        <Select
+          label="Status"
+          options={STATUS_OPTIONS}
+          value={statusFilter}
+          onChange={setStatusFilter}
+        />
+        <Select
+          label="Rok szkolny"
+          options={[
+            { value: "all", label: "Wszystkie lata" },
+            ...years.map((y) => ({ value: y, label: y })),
+          ]}
+          value={yearFilter}
+          onChange={setYearFilter}
+        />
       </div>
 
       {actionError && (
-        <div>
+        <div className="rounded-md bg-destructive/10 px-3 py-2 mb-4 text-sm text-destructive">
           {actionError}
         </div>
       )}
 
       {loading ? (
-        <p>Wczytywanie zgłoszeń...</p>
+        <p className="text-muted-foreground">Wczytywanie zgłoszeń...</p>
       ) : filtered.length === 0 ? (
-        <p>
+        <p className="text-muted-foreground">
           Brak zgłoszeń spełniających kryteria.
         </p>
       ) : (
-        <div>
+        <div className="space-y-4">
           {filtered.map((enrollment) => (
-            <Card
-              key={enrollment.id}
-            >
-              <div>
-                <div>
+            <Card key={enrollment.id}>
+              <CardContent className="pt-6">
+                <div className="flex items-start justify-between">
                   <div>
-                    <h2>
-                      {enrollment.profiles?.profile_name || "Rodzina"}
-                    </h2>
-                    <Badge
-                      variant={
-                        enrollment.status === "accepted"
-                          ? "default"
-                          : enrollment.status === "rejected"
-                            ? "destructive"
-                            : "secondary"
-                      }
-                    >
-                      {enrollment.status}
-                    </Badge>
+                    <div className="flex items-center gap-2">
+                      <h2 className="font-semibold">
+                        {enrollment.profiles?.profile_name || "Rodzina"}
+                      </h2>
+                      <Badge
+                        variant={
+                          enrollment.status === "accepted"
+                            ? "default"
+                            : enrollment.status === "rejected"
+                              ? "destructive"
+                              : "secondary"
+                        }
+                      >
+                        {enrollment.status}
+                      </Badge>
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      Rok szkolny {enrollment.school_year}
+                    </p>
                   </div>
-                  <p>
-                    Rok szkolny {enrollment.school_year}
-                  </p>
-                </div>
 
-                <div>
-                  <Link href={`/admin/enrollments/${enrollment.id}`}>
-                    <Button size="sm" variant="outline">
-                      Szczegóły
-                    </Button>
-                  </Link>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    disabled={busy || enrollment.status === "accepted"}
-                    onClick={() => setStatus(enrollment.id, "accepted")}
-                  >
-                    Zaakceptuj
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="destructive"
-                    disabled={busy || enrollment.status === "rejected"}
-                    onClick={() => setStatus(enrollment.id, "rejected")}
-                  >
-                    Odrzuć
-                  </Button>
-                </div>
-              </div>
-
-              <div>
-                <div>
-                  <p>Rodzic</p>
-                  <p>
-                    {enrollment.parent_first_name} {enrollment.parent_last_name}
-                  </p>
-                  <p>
-                    Email:{" "}
-                    <a
-                      href={`mailto:${enrollment.parent_email}`}
+                  <div className="flex gap-2">
+                    <Link href={`/admin/enrollments/${enrollment.id}`}>
+                      <Button size="sm" variant="outline">
+                        Szczegóły
+                      </Button>
+                    </Link>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      disabled={busy || enrollment.status === "accepted"}
+                      onClick={() => setStatus(enrollment.id, "accepted")}
                     >
-                      {enrollment.parent_email}
-                    </a>
-                  </p>
-                  <p>Telefon: {enrollment.parent_phone}</p>
-                  {enrollment.profiles?.contact_fb && (
-                    <p>FB: {enrollment.profiles.contact_fb}</p>
-                  )}
-                  {enrollment.decided_at && (
-                    <p>
-                      Decyzja:{" "}
-                      {new Date(enrollment.decided_at).toLocaleString("pl-PL")}
-                    </p>
-                  )}
+                      Zaakceptuj
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      disabled={busy || enrollment.status === "rejected"}
+                      onClick={() => setStatus(enrollment.id, "rejected")}
+                    >
+                      Odrzuć
+                    </Button>
+                  </div>
                 </div>
 
-                <div>
-                  <p>Dzieci w zgłoszeniu</p>
-                  {enrollment.enrollment_children.map((child) => (
-                    <p key={child.id}>
-                      {child.first_name} {child.last_name} — klasa{" "}
-                      {child.school_class}
+                <div className="mt-4 space-y-3">
+                  <div>
+                    <p className="text-sm font-medium">Rodzic</p>
+                    <p className="text-sm">
+                      {enrollment.parent_first_name} {enrollment.parent_last_name}
                     </p>
-                  ))}
-                  {enrollment.enrollment_children.length === 0 && (
-                    <p>Brak dzieci w zgłoszeniu</p>
-                  )}
+                    <p className="text-sm">
+                      Email:{" "}
+                      <a
+                        href={`mailto:${enrollment.parent_email}`}
+                        className="text-foreground underline"
+                      >
+                        {enrollment.parent_email}
+                      </a>
+                    </p>
+                    <p className="text-sm">Telefon: {enrollment.parent_phone}</p>
+                    {enrollment.profiles?.contact_fb && (
+                      <p className="text-sm">FB: {enrollment.profiles.contact_fb}</p>
+                    )}
+                    {enrollment.decided_at && (
+                      <p className="text-sm text-muted-foreground">
+                        Decyzja:{" "}
+                        {new Date(enrollment.decided_at).toLocaleString("pl-PL")}
+                      </p>
+                    )}
+                  </div>
+
+                  <div>
+                    <p className="text-sm font-medium">Dzieci w zgłoszeniu</p>
+                    {enrollment.enrollment_children.map((child) => (
+                      <p key={child.id} className="text-sm">
+                        {child.first_name} {child.last_name} — klasa{" "}
+                        {child.school_class}
+                      </p>
+                    ))}
+                    {enrollment.enrollment_children.length === 0 && (
+                      <p className="text-sm text-muted-foreground">
+                        Brak dzieci w zgłoszeniu
+                      </p>
+                    )}
+                  </div>
                 </div>
-              </div>
+              </CardContent>
             </Card>
           ))}
         </div>

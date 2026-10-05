@@ -2,16 +2,18 @@ import Link from "next/link";
 
 export default function PrivacyPage() {
   return (
-    <div>
-      <main>
-        <h1>
-          Polityka Prywatności
-        </h1>
-        <p>
-          Wersja 1.0 · Data wejścia w życie: {new Date().toLocaleDateString("pl-PL")}
-        </p>
+    <div className="bg-background">
+      <main className="mx-auto max-w-3xl px-4 py-10">
+        <div className="mb-8">
+          <h1 className="font-heading text-3xl font-bold">Polityka Prywatności</h1>
+          <p className="text-sm text-muted-foreground">
+            Wersja 1.0 · Data wejścia w życie: {new Date().toLocaleDateString("pl-PL")}
+          </p>
+        </div>
 
-        <div>
+        <div className="prose prose-neutral max-w-none">
+          <div className="space-y-8">
+            <div>
           <h2>
             1. Administrator danych
           </h2>
@@ -410,10 +412,13 @@ export default function PrivacyPage() {
           <p>
             Ostatnia aktualizacja: {new Date().toLocaleDateString("pl-PL")}
           </p>
+          </div>
         </div>
+      </div>
 
         <Link
           href="/"
+          className="mt-8 inline-block text-sm text-foreground underline underline-offset-4 hover:text-primary"
         >
           ← Powrót do strony głównej
         </Link>

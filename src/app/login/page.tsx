@@ -4,6 +4,9 @@ import { useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
+import { Button } from "@/components/ui/button";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 
 export default function LoginPage() {
   return (
@@ -48,62 +51,64 @@ function LoginPageContent() {
   };
 
   return (
-    <div>
-      <main>
-        <div>
-          <Card>
-            <CardHeader>
-              <CardTitle>
-                Zaloguj się
-              </CardTitle>
-              <CardDescription>
-                do Ohany i dołącz do naszej społeczności
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleSubmit}>
-                {error && (
-                  <div>
-                    {error}
-                  </div>
-                )}
+    <main className="flex justify-center py-12">
+      <div className="w-full max-w-md">
+        <Card>
+          <CardHeader>
+            <CardTitle>
+              Zaloguj się
+            </CardTitle>
+            <CardDescription>
+              do Ohany i dołącz do naszej społeczności
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+              {error && (
+                <div className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
+                  {error}
+                </div>
+              )}
 
-                <Input
-                  type="email"
-                  placeholder="Email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                />
+              <Input
+                type="email"
+                placeholder="Email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                autoComplete="email"
+              />
 
-                <Input
-                  type="password"
-                  placeholder="Hasło"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                />
+              <Input
+                type="password"
+                placeholder="Hasło"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                autoComplete="current-password"
+              />
 
-                <Button
-                  type="submit"
-                  disabled={loading}
-                >
-                  {loading ? "Logowanie..." : "Zaloguj się"}
-                </Button>
-              </form>
+              <Button
+                type="submit"
+                disabled={loading}
+                className="w-full"
+              >
+                {loading ? "Logowanie..." : "Zaloguj się"}
+              </Button>
+            </form>
 
-              <div>
-                Nie masz konta?{" "}
-                <Link
-                  href="/register"
-                >
-                  Zarejestruj się
-                </Link>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </main>
-    </div>
+            <div className="mt-4 text-center text-sm">
+              Nie masz konta?{" "}
+              <Link
+                href="/register"
+                className="text-foreground underline underline-offset-4 hover:text-primary"
+              >
+                Zarejestruj się
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </main>
   );
 }

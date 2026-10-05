@@ -12,6 +12,13 @@ import {
   SCHOOL_CLASSES,
 } from "@/lib/validation";
 
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Select } from "@/components/ui/select";
+import { PhoneInput } from "@/components/ui/phone-input";
+import { Badge } from "@/components/ui/badge";
+
 const SCHOOL_YEARS = ["2026/2027", "2027/2028", "2028/2029", "2029/2030"];
 
 // Karta = jedno dziecko w bieżącym zapisie. Dziecko istniejące w profilu ma
@@ -347,26 +354,26 @@ export default function EnrollPage() {
   };
 
   return (
-    <div>
-      <main>
-        <h1>
-          Nowy zapis
-        </h1>
-        <p>
+    <main className="max-w-4xl mx-auto py-8">
+      <div className="mb-6">
+        <h1 className="font-heading text-3xl font-bold">Nowy zapis</h1>
+        <p className="text-sm text-muted-foreground">
           Zgłoś dziecko na kolejny rok szkolny. Poprzednie zapisy pozostają
           bez zmian — dane poniżej są kopią Twojego ostatniego zgłoszenia i
           obowiązują wyłącznie dla nowego roku.
         </p>
+      </div>
 
-        {prefillSource && (
-          <p>
-            Formularz został wypełniony danymi z Twojego poprzedniego zapisu.
-          </p>
-        )}
+      {prefillSource && (
+        <p className="text-sm text-muted-foreground mb-4">
+          Formularz został wypełniony danymi z Twojego poprzedniego zapisu.
+        </p>
+      )}
 
-        <form onSubmit={handleSubmit}>
-            <Card><CardContent>
-            <p>
+      <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+        <Card>
+          <CardContent className="pt-6">
+            <p className="text-sm font-medium mb-4">
               Dane wspólne dla całego zapisu
             </p>
 
@@ -377,7 +384,7 @@ export default function EnrollPage() {
               onChange={setSchoolYear}
             />
 
-            <div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Input
                 label="Imię rodzica"
                 placeholder="Jan"
@@ -416,187 +423,193 @@ export default function EnrollPage() {
               value={parentFbLink}
               onChange={(e) => setParentFbLink(e.target.value)}
             />
-            </CardContent></Card>
+          </CardContent>
+        </Card>
 
-            <Card><CardContent>
-            <p>
+        <Card>
+          <CardContent className="pt-6">
+            <p className="text-sm font-medium mb-4">
               Dzieci — każda karta to jedno dziecko w zapisie
             </p>
 
             {cards.length === 0 && (
-              <p>
+              <p className="text-sm text-muted-foreground">
                 Brak dzieci w formularzu. Dodaj dziecko poniżej.
               </p>
             )}
 
             {cards.map((card, idx) => (
-              <Card
-                key={card.key}
-              >
-                <div>
-                  <p>
-                    Dziecko {idx + 1}
-                    {card.isNew && (
-                    <Badge variant="default">nowe</Badge>
-                    )}
-                  </p>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => removeCard(card.key)}
-                  >
-                    Usuń
-                  </Button>
-                </div>
-
-                <Select
-                  label="Dziecko"
-                  options={childOptionsFor(card.key)}
-                  value={card.childId ?? ""}
-                  onChange={(v) => selectChildForCard(card.key, v)}
-                  placeholder="— nowe dziecko —"
-                />
-
-                {card.childId ? (
-                  <div>
-                    <p>
-                      {card.firstName} {card.lastName}
-                    </p>
-                    <p>
-                      PESEL {card.pesel} · ur. {card.birthDate} ·{" "}
-                      {card.birthPlace}
-                    </p>
+              <Card key={card.key} className="mb-4">
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <CardTitle>
+                      Dziecko {idx + 1}
+                      {card.isNew && (
+                        <Badge variant="secondary" className="ml-2">
+                          nowe
+                        </Badge>
+                      )}
+                    </CardTitle>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => removeCard(card.key)}
+                    >
+                      Usuń
+                    </Button>
                   </div>
-                ) : (
-                  <div>
-                    <div>
-                      <Input
-                        label="Imię"
-                        placeholder="Jan"
-                        value={card.firstName}
-                        onChange={(e) =>
-                          updateCard(card.key, "firstName", e.target.value)
-                        }
-                        error={errors[`c${idx}firstName`]}
-                      />
-                      <Input
-                        label="Nazwisko"
-                        placeholder="Kowalski"
-                        value={card.lastName}
-                        onChange={(e) =>
-                          updateCard(card.key, "lastName", e.target.value)
-                        }
-                        error={errors[`c${idx}lastName`]}
-                      />
-                    </div>
-                    <div>
-                      <Input
-                        label="Data urodzenia"
-                        type="date"
-                        value={card.birthDate}
-                        onChange={(e) =>
-                          updateCard(card.key, "birthDate", e.target.value)
-                        }
-                        error={errors[`c${idx}birthDate`]}
-                      />
-                      <Input
-                        label="Miejsce urodzenia"
-                        placeholder="Warszawa"
-                        value={card.birthPlace}
-                        onChange={(e) =>
-                          updateCard(card.key, "birthPlace", e.target.value)
-                        }
-                        error={errors[`c${idx}birthPlace`]}
-                      />
-                    </div>
-                    <Input
-                      label="PESEL"
-                      placeholder="11111111111"
-                      value={card.pesel}
-                      onChange={(e) => {
-                        const val = e.target.value.replace(/\D/g, "").slice(0, 11);
-                        updateCard(card.key, "pesel", val);
-                      }}
-                      error={errors[`c${idx}pesel`]}
-                    />
-                  </div>
-                )}
-
-                <Select
-                  label="Klasa"
-                  options={SCHOOL_CLASSES.map((c) => ({
-                    value: c,
-                    label: c,
-                  }))}
-                  value={card.schoolClass}
-                  onChange={(value) =>
-                    updateCard(card.key, "schoolClass", value)
-                  }
-                  placeholder="Nie zgłaszam"
-                />
-
-                <div>
-                  <div>
-                    <Input
-                      label="Ulica"
-                      placeholder="ul. Główna"
-                      value={card.street}
-                      onChange={(e) =>
-                        updateCard(card.key, "street", e.target.value)
-                      }
-                      error={errors[`c${idx}street`]}
-                    />
-                    <Input
-                      label="Numer domu"
-                      placeholder="10"
-                      value={card.houseNumber}
-                      onChange={(e) =>
-                        updateCard(card.key, "houseNumber", e.target.value)
-                      }
-                      error={errors[`c${idx}houseNumber`]}
-                    />
-                  </div>
-
-                  <Input
-                    label="Miejscowość"
-                    placeholder="Warszawa"
-                    value={card.city}
-                    onChange={(e) =>
-                      updateCard(card.key, "city", e.target.value)
-                    }
-                    error={errors[`c${idx}city`]}
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <Select
+                    label="Dziecko"
+                    options={childOptionsFor(card.key)}
+                    value={card.childId ?? ""}
+                    onChange={(v) => selectChildForCard(card.key, v)}
+                    placeholder="— nowe dziecko —"
                   />
 
-                  <div>
-                    <Input
-                      label="Kod pocztowy"
-                      placeholder="XX-XXX"
-                      value={card.postalCode}
-                      onChange={(e) =>
-                        updateCard(card.key, "postalCode", e.target.value)
-                      }
-                      error={errors[`c${idx}postalCode`]}
-                    />
-                    <Select
-                      label="Województwo"
-                      options={VOIVODESHIPS.map((v) => ({
-                        value: v,
-                        label: v,
-                      }))}
-                      value={card.voivodeship}
-                      onChange={(value) =>
-                        updateCard(card.key, "voivodeship", value)
-                      }
-                      error={errors[`c${idx}voivodeship`]}
-                    />
+                  {card.childId ? (
+                    <div className="space-y-1">
+                      <p className="font-medium">
+                        {card.firstName} {card.lastName}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        PESEL {card.pesel} · ur. {card.birthDate} ·{" "}
+                        {card.birthPlace}
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <Input
+                          label="Imię"
+                          placeholder="Jan"
+                          value={card.firstName}
+                          onChange={(e) =>
+                            updateCard(card.key, "firstName", e.target.value)
+                          }
+                          error={errors[`c${idx}firstName`]}
+                        />
+                        <Input
+                          label="Nazwisko"
+                          placeholder="Kowalski"
+                          value={card.lastName}
+                          onChange={(e) =>
+                            updateCard(card.key, "lastName", e.target.value)
+                          }
+                          error={errors[`c${idx}lastName`]}
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <Input
+                          label="Data urodzenia"
+                          type="date"
+                          value={card.birthDate}
+                          onChange={(e) =>
+                            updateCard(card.key, "birthDate", e.target.value)
+                          }
+                          error={errors[`c${idx}birthDate`]}
+                        />
+                        <Input
+                          label="Miejsce urodzenia"
+                          placeholder="Warszawa"
+                          value={card.birthPlace}
+                          onChange={(e) =>
+                            updateCard(card.key, "birthPlace", e.target.value)
+                          }
+                          error={errors[`c${idx}birthPlace`]}
+                        />
+                      </div>
+
+                      <Input
+                        label="PESEL"
+                        placeholder="11111111111"
+                        value={card.pesel}
+                        onChange={(e) => {
+                          const val = e.target.value.replace(/\D/g, "").slice(0, 11);
+                          updateCard(card.key, "pesel", val);
+                        }}
+                        error={errors[`c${idx}pesel`]}
+                      />
+                    </div>
+                  )}
+
+                  <Select
+                    label="Klasa"
+                    options={SCHOOL_CLASSES.map((c) => ({
+                      value: c,
+                      label: c,
+                    }))}
+                    value={card.schoolClass}
+                    onChange={(value) =>
+                      updateCard(card.key, "schoolClass", value)
+                    }
+                    placeholder="Nie zgłaszam"
+                  />
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Input
+                        label="Ulica"
+                        placeholder="ul. Główna"
+                        value={card.street}
+                        onChange={(e) =>
+                          updateCard(card.key, "street", e.target.value)
+                        }
+                        error={errors[`c${idx}street`]}
+                      />
+                      <Input
+                        label="Numer domu"
+                        placeholder="10"
+                        value={card.houseNumber}
+                        onChange={(e) =>
+                          updateCard(card.key, "houseNumber", e.target.value)
+                        }
+                        error={errors[`c${idx}houseNumber`]}
+                      />
+                    </div>
+
+                    <div>
+                      <Input
+                        label="Miejscowość"
+                        placeholder="Warszawa"
+                        value={card.city}
+                        onChange={(e) =>
+                          updateCard(card.key, "city", e.target.value)
+                        }
+                        error={errors[`c${idx}city`]}
+                      />
+                      <Input
+                        label="Kod pocztowy"
+                        placeholder="XX-XXX"
+                        value={card.postalCode}
+                        onChange={(e) =>
+                          updateCard(card.key, "postalCode", e.target.value)
+                        }
+                        error={errors[`c${idx}postalCode`]}
+                      />
+                      <Select
+                        label="Województwo"
+                        options={VOIVODESHIPS.map((v) => ({
+                          value: v,
+                          label: v,
+                        }))}
+                        value={card.voivodeship}
+                        onChange={(value) =>
+                          updateCard(card.key, "voivodeship", value)
+                        }
+                        error={errors[`c${idx}voivodeship`]}
+                      />
+                    </div>
                   </div>
-                </div>
+                </CardContent>
               </Card>
             ))}
 
             {errors.children && (
-              <p>{errors.children}</p>
+              <p className="text-xs text-destructive">{errors.children}</p>
             )}
 
             <Button
@@ -606,19 +619,19 @@ export default function EnrollPage() {
             >
               + Dodaj kolejne dziecko
             </Button>
-            </CardContent></Card>
+          </CardContent>
+        </Card>
 
-          {errors.submit && (
-            <div>
-              {errors.submit}
-            </div>
-          )}
+        {errors.submit && (
+          <div className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
+            {errors.submit}
+          </div>
+        )}
 
-          <Button type="submit" disabled={submitting}>
-            {submitting ? "Zapisywanie..." : "Wyślij zapis"}
-          </Button>
-        </form>
-      </main>
-    </div>
+        <Button type="submit" disabled={submitting} className="w-full">
+          {submitting ? "Zapisywanie..." : "Wyślij zapis"}
+        </Button>
+      </form>
+    </main>
   );
 }

@@ -17,6 +17,24 @@ import {
   VOIVODESHIPS,
 } from "@/lib/validation";
 
+import { Button } from "@/components/ui/button";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Avatar } from "@/components/ui/avatar";
+import { Input } from "@/components/ui/input";
+import { Select } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+import { ChildrenAgesInput } from "@/components/ui/children-ages-input";
+import { InterestsInput } from "@/components/ui/interests-input";
+import { PhoneInput } from "@/components/ui/phone-input";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
+
 type Profile = Database["public"]["Tables"]["profiles"]["Row"];
 
 interface ProfileForm {
@@ -401,51 +419,51 @@ export default function ProfilePage() {
 
   if (loading || !form || !profile) {
     return (
-      <div>
-        <p>Wczytywanie...</p>
-      </div>
+      <main className="py-8">
+        <p className="text-muted-foreground">Wczytywanie...</p>
+      </main>
     );
   }
 
   return (
-    <div>
-      <main>
-        <h1>
-          Profil rodziny
-        </h1>
-        <p>
+    <main className="max-w-2xl mx-auto py-8 space-y-6">
+      <div className="mb-6">
+        <h1 className="font-heading text-3xl font-bold">Profil rodziny</h1>
+        <p className="text-sm text-muted-foreground">
           Dane profilu, kontakty i widoczność na mapie.
         </p>
+      </div>
 
-        {errors.submit && (
-          <div>
-            {errors.submit}
-          </div>
-        )}
-        {success && (
-          <div>
-            {success}
-          </div>
-        )}
+      {errors.submit && (
+        <div className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
+          {errors.submit}
+        </div>
+      )}
+      {success && (
+        <div className="rounded-md bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
+          {success}
+        </div>
+      )}
 
-        <form
-          noValidate
-          onSubmit={handleSave}
-        >
-          <Card>
-            <CardHeader>
-              <CardTitle id="avatar-heading">Zdjęcie profilowe</CardTitle>
-            </CardHeader>
-            <CardContent>
-            <div>
+      <form
+        noValidate
+        onSubmit={handleSave}
+        className="space-y-6"
+      >
+        <Card>
+          <CardHeader>
+            <CardTitle id="avatar-heading">Zdjęcie profilowe</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-start gap-6">
               <Avatar
                 src={avatarPathToUrl(avatarPath)}
                 name={form.profileName}
                 alt="Zdjęcie profilowe rodziny"
                 size={96}
               />
-              <div>
-                <div>
+              <div className="flex flex-col gap-2">
+                <div className="flex gap-2">
                   <input
                     ref={avatarInputRef}
                     type="file"
@@ -454,6 +472,7 @@ export default function ProfilePage() {
                     onChange={(event) =>
                       void handleAvatarFile(event.currentTarget.files?.[0])
                     }
+                    className="text-sm file:mr-4 file:rounded-md file:border-0 file:bg-secondary file:px-3 file:py-1 file:text-sm file:font-medium file:text-secondary-foreground hover:file:bg-secondary/80"
                   />
                   <Button
                     type="button"
@@ -482,25 +501,28 @@ export default function ProfilePage() {
                 </div>
               </div>
             </div>
-            <p>
+            <p className="text-sm text-muted-foreground mt-2">
               JPEG, PNG lub WebP, maks. 5 MiB. Gdy widoczność na mapie jest
               włączona, zdjęcie jest widoczne publicznie przy karcie rodziny.
             </p>
             {avatarStatus ? (
-              <p role="status">
+              <p role="status" className="text-sm text-emerald-700">
                 {avatarStatus}
               </p>
             ) : null}
             {avatarError ? (
-              <p role="alert">
+              <p role="alert" className="text-sm text-destructive">
                 {avatarError}
               </p>
             ) : null}
           </CardContent>
-          </Card>
+        </Card>
 
-          <Card>
-            <CardContent>
+        <Card>
+          <CardHeader>
+            <CardTitle>Dane podstawowe</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
             <Input
               label="Nazwa profilu (np. Kossakowscy)"
               placeholder="Nazwa rodziny"
@@ -522,13 +544,13 @@ export default function ProfilePage() {
               onChange={(interests) => setForm({ ...form, interests })}
             />
           </CardContent>
-          </Card>
+        </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Kontakt do rodziny (minimum jeden)</CardTitle>
-            </CardHeader>
-            <CardContent>
+        <Card>
+          <CardHeader>
+            <CardTitle>Kontakt do rodziny (minimum jeden)</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
             <PhoneInput
               label="Numer telefonu"
               value={form.contactPhone}
@@ -574,16 +596,16 @@ export default function ProfilePage() {
             />
 
             {errors.contact && (
-              <p>{errors.contact}</p>
+              <p className="text-xs text-destructive">{errors.contact}</p>
             )}
-            </CardContent>
-          </Card>
+          </CardContent>
+        </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Adres</CardTitle>
-            </CardHeader>
-            <CardContent>
+        <Card>
+          <CardHeader>
+            <CardTitle>Adres</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
             <Input
               label="Miejscowość"
               placeholder="Warszawa"
@@ -607,23 +629,24 @@ export default function ProfilePage() {
               onChange={(value) => setForm({ ...form, voivodeship: value })}
               error={errors.voivodeship}
             />
-            </CardContent>
-          </Card>
+          </CardContent>
+        </Card>
 
-          <Button
-            type="submit"
-            disabled={saving || avatarOperation !== null}
-          >
-            {saving ? "Zapisywanie..." : "Zapisz profil"}
-          </Button>
-        </form>
+        <Button
+          type="submit"
+          disabled={saving || avatarOperation !== null}
+          className="w-full"
+        >
+          {saving ? "Zapisywanie..." : "Zapisz profil"}
+        </Button>
+      </form>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Widoczność na mapie</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Switch
+      <Card>
+        <CardHeader>
+          <CardTitle>Widoczność na mapie</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Switch
             checked={profile.map_visible}
             onCheckedChange={handleToggleMap}
             disabled={togglingMap}
@@ -632,7 +655,10 @@ export default function ProfilePage() {
             description={
               <>
                 Gdy włączone, Twoja rodzina pojawi się na publicznej{" "}
-                <Link href="/mapa">
+                <Link
+                  href="/mapa"
+                  className="text-foreground underline underline-offset-4 hover:text-primary"
+                >
                   mapie rodzin
                 </Link>
                 . Pokazuje dane profilu, podane kontakty i przybliżoną
@@ -641,11 +667,10 @@ export default function ProfilePage() {
             }
           />
           {errors.submit && (
-            <p>{errors.submit}</p>
+            <p className="text-xs text-destructive">{errors.submit}</p>
           )}
         </CardContent>
       </Card>
-      </main>
 
       <Dialog open={mapVisibilityModalOpen} onOpenChange={(open) => setMapVisibilityModalOpen(open)}>
         <DialogContent>
@@ -655,13 +680,13 @@ export default function ProfilePage() {
               Profil Twojej rodziny stanie się publiczny na mapie rodzin.
             </DialogDescription>
           </DialogHeader>
-          <div>
-            <p>
+          <div className="space-y-3">
+            <p className="text-sm">
               Publiczna mapa pokaże nazwę profilu, miejscowość, województwo, kod
               pocztowy, liczbę i wiek dzieci, zainteresowania oraz podane dane
               kontaktowe oraz opcjonalne zdjęcie profilowe, jeśli zostało dodane.
             </p>
-            <p>
+            <p className="text-sm">
               Pinezka pokazuje lokalizację przybliżoną, nie adres domu. Widoczność
               możesz później wyłączyć.
             </p>
@@ -680,6 +705,6 @@ export default function ProfilePage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </main>
   );
 }

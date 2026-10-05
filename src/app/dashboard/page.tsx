@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import type { Database } from "@/lib/supabase/types";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import {
   completeRegistration,
   getStagedRegistration,
@@ -82,112 +84,123 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <div>
-        <p>Wczytywanie...</p>
-      </div>
+      <main className="py-8">
+        <p className="text-muted-foreground">Wczytywanie...</p>
+      </main>
     );
   }
 
   return (
-    <div>
-      <main>
-        <h1>
-          Panel rodziny
-        </h1>
+    <main className="py-8">
+      <div className="mb-6">
+        <h1 className="font-heading text-3xl font-bold">Panel rodziny</h1>
+        <p className="text-sm text-muted-foreground">
+          Twój profil kooperatywy i zgłoszenia
+        </p>
+      </div>
 
-        {error && (
-          <div>
-            {error}
-          </div>
-        )}
+      {error && (
+        <div className="rounded-md bg-destructive/10 px-3 py-2 mb-4 text-sm text-destructive">
+          {error}
+        </div>
+      )}
 
-        <div>
-          <Card>
-            <CardHeader>
+      <div className="space-y-6">
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
               <CardTitle>Profil rodziny</CardTitle>
               <Link
                 href="/profil"
+                className="text-sm text-foreground underline underline-offset-4 hover:text-primary"
               >
                 Edytuj
               </Link>
-            </CardHeader>
-            <CardContent>
-            <div>
-              <p>
-                <span>Nazwa:</span>{" "}
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-1">
+              <p className="text-sm">
+                <span className="text-muted-foreground">Nazwa:</span>{" "}
                 {profile?.profile_name || "—"}
               </p>
-              <p>
-                <span>Miejscowość:</span>{" "}
+              <p className="text-sm">
+                <span className="text-muted-foreground">Miejscowość:</span>{" "}
                 {profile?.city || "—"}
               </p>
-              <p>
-                <span>Województwo:</span>{" "}
+              <p className="text-sm">
+                <span className="text-muted-foreground">Województwo:</span>{" "}
                 {profile?.voivodeship || "—"}
               </p>
-              <p>
-                <span>Liczba dzieci:</span>{" "}
+              <p className="text-sm">
+                <span className="text-muted-foreground">Liczba dzieci:</span>{" "}
                 {profile?.num_children ?? "—"}
               </p>
-              <p>
-                <span>Zainteresowania:</span>{" "}
+              <p className="text-sm">
+                <span className="text-muted-foreground">Zainteresowania:</span>{" "}
                 {(profile?.interests ?? []).join(", ") || "—"}
               </p>
-              <p>
-                <span>Widoczność na mapie:</span>{" "}
+              <p className="text-sm">
+                <span className="text-muted-foreground">Widoczność na mapie:</span>{" "}
                 {profile?.map_visible ? "Tak" : "Nie"}
               </p>
             </div>
-            </CardContent>
-          </Card>
+          </CardContent>
+        </Card>
 
-          <Card>
-            <CardHeader>
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
               <CardTitle>Zapisy (enrollments)</CardTitle>
               <Link
                 href="/enroll"
+                className="text-sm text-foreground underline underline-offset-4 hover:text-primary"
               >
                 Nowy zapis
               </Link>
-            </CardHeader>
-            <CardContent>
+            </div>
+          </CardHeader>
+          <CardContent>
             {enrollments.length === 0 ? (
-              <p>
+              <p className="text-sm text-muted-foreground">
                 Brak zapisów. Kliknij „Nowy zapis”, aby zgłosić dziecko na rok
                 szkolny.
               </p>
             ) : (
-              <div>
+              <div className="space-y-3">
                 {enrollments.map((enrollment) => (
-                  <Card key={enrollment.id}>
-                    <div>
-                      <p>
-                        Rok szkolny {enrollment.school_year}
-                      </p>
-                      <Badge
-                        variant={
-                          enrollment.status === "accepted"
-                            ? "default"
-                            : enrollment.status === "rejected"
-                              ? "destructive"
-                              : "secondary"
-                        }
-                      >
-                        {STATUS_LABELS[enrollment.status] ?? enrollment.status}
-                      </Badge>
-                    </div>
-                    <p>
-                      {enrollment.parent_first_name} {enrollment.parent_last_name} ·{" "}
-                      {enrollment.parent_email}
-                    </p>
+                  <Card key={enrollment.id} className="bg-secondary/30">
+                    <CardContent className="pt-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm">
+                            Rok szkolny {enrollment.school_year}
+                          </p>
+                          <p className="text-sm">
+                            {enrollment.parent_first_name} {enrollment.parent_last_name} ·{" "}
+                            {enrollment.parent_email}
+                          </p>
+                        </div>
+                        <Badge
+                          variant={
+                            enrollment.status === "accepted"
+                              ? "default"
+                              : enrollment.status === "rejected"
+                                ? "destructive"
+                                : "secondary"
+                          }
+                        >
+                          {STATUS_LABELS[enrollment.status] ?? enrollment.status}
+                        </Badge>
+                      </div>
+                    </CardContent>
                   </Card>
                 ))}
               </div>
             )}
           </CardContent>
-          </Card>
-        </div>
-      </main>
-    </div>
+        </Card>
+      </div>
+    </main>
   );
 }
