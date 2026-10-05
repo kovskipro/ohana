@@ -11,6 +11,14 @@ export type { SelectProps, SelectOption } from "@/components/ui/select"
 export { Switch } from "@/components/ui/switch"
 export type { SwitchProps } from "@/components/ui/switch"
 export {
+  Field,
+  FieldGroup,
+  FieldLabel,
+  FieldContent,
+  FieldDescription,
+  FieldError,
+} from "@/components/ui/field"
+export {
   Dialog,
   DialogClose,
   DialogContent,

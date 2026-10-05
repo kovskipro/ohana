@@ -7,6 +7,7 @@ import type { Database } from "@/lib/supabase/types";
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Select } from "@/components/ui/select";
+import { Field, FieldLabel } from "@/components/ui/field";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
@@ -147,21 +148,27 @@ export default function AdminPage() {
       </div>
 
       <div className="mb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Select
-          label="Status"
-          options={STATUS_OPTIONS}
-          value={statusFilter}
-          onChange={setStatusFilter}
-        />
-        <Select
-          label="Rok szkolny"
-          options={[
-            { value: "all", label: "Wszystkie lata" },
-            ...years.map((y) => ({ value: y, label: y })),
-          ]}
-          value={yearFilter}
-          onChange={setYearFilter}
-        />
+        <Field>
+          <FieldLabel htmlFor="statusFilter">Status</FieldLabel>
+          <Select
+            id="statusFilter"
+            options={STATUS_OPTIONS}
+            value={statusFilter}
+            onChange={setStatusFilter}
+          />
+        </Field>
+        <Field>
+          <FieldLabel htmlFor="yearFilter">Rok szkolny</FieldLabel>
+          <Select
+            id="yearFilter"
+            options={[
+              { value: "all", label: "Wszystkie lata" },
+              ...years.map((y) => ({ value: y, label: y })),
+            ]}
+            value={yearFilter}
+            onChange={setYearFilter}
+          />
+        </Field>
       </div>
 
       {actionError && (

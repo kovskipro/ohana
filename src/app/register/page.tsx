@@ -24,7 +24,7 @@ import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
-import { Label } from "@/components/ui/label";
+import { Field, FieldLabel, FieldError } from "@/components/ui/field";
 import {
   InputOTP,
   InputOTPGroup,
@@ -334,6 +334,26 @@ export default function RegisterPage() {
     }
   };
 
+  // Computed error values for live validation feedback
+  const profileNameError = errors.profileName;
+  const numChildrenError = errors.numChildren;
+  const interestsError = errors.interests;
+  const contactPhoneError = data.contactPhone
+    ? getPhoneMessage(data.contactPhone) || errors.contactPhone
+    : errors.contactPhone;
+  const contactEmailError = data.contactEmail
+    ? getEmailMessage(data.contactEmail) || errors.contactEmail
+    : errors.contactEmail;
+  const cityError = errors.city;
+  const postalCodeError = errors.postalCode;
+  const voivodeshipError = errors.voivodeship;
+  const emailError = data.email
+    ? getEmailMessage(data.email) || errors.email
+    : errors.email;
+  const passwordError = errors.password;
+  const passwordConfirmError = errors.passwordConfirm;
+  const otpError = errors.otp;
+
   return (
     <main className="max-w-2xl mx-auto py-8">
       {step === "part1" && (
@@ -348,54 +368,67 @@ export default function RegisterPage() {
           </div>
 
           <form noValidate onSubmit={(e) => { e.preventDefault(); handleNext(); }} className="flex flex-col gap-6">
-            <Card><CardContent className="pt-6">
-              <Input
-                label="Nazwa profilu (np. Kossakowscy)"
-                placeholder="Nazwa rodziny"
-                value={data.profileName}
-                onChange={(e) => setData({ ...data, profileName: e.target.value })}
-                error={errors.profileName}
-                name="profileName"
-                autoComplete="organization"
-              />
+              <Card><CardContent className="pt-6">
+              <Field data-invalid={!!profileNameError}>
+                <FieldLabel htmlFor="profileName">Nazwa profilu (np. Kossakowscy)</FieldLabel>
+                <Input
+                  id="profileName"
+                  placeholder="Nazwa rodziny"
+                  value={data.profileName}
+                  onChange={(e) => setData({ ...data, profileName: e.target.value })}
+                  aria-invalid={!!profileNameError}
+                  name="profileName"
+                  autoComplete="organization"
+                />
+                {profileNameError && <FieldError>{profileNameError}</FieldError>}
+              </Field>
 
-              <Input
-                label="Liczba dzieci"
-                type="number"
-                min={0}
-                max={20}
-                value={data.numChildren}
-                onChange={(e) => {
-                  const num = Math.max(0, Math.min(20, parseInt(e.target.value, 10) || 0));
-                  const newAges = [...data.childrenAges];
-                  if (num > data.childrenAges.length) {
-                    newAges.push(...Array(num - data.childrenAges.length).fill(0));
-                  } else if (num < data.childrenAges.length) {
-                    newAges.splice(num);
-                  }
-                  setData({ ...data, numChildren: num, childrenAges: newAges.length > 0 ? newAges : [0] });
-                }}
-                error={errors.numChildren}
-              />
+              <Field data-invalid={!!numChildrenError}>
+                <FieldLabel htmlFor="numChildren">Liczba dzieci</FieldLabel>
+                <Input
+                  id="numChildren"
+                  type="number"
+                  min={0}
+                  max={20}
+                  value={data.numChildren}
+                  onChange={(e) => {
+                    const num = Math.max(0, Math.min(20, parseInt(e.target.value, 10) || 0));
+                    const newAges = [...data.childrenAges];
+                    if (num > data.childrenAges.length) {
+                      newAges.push(...Array(num - data.childrenAges.length).fill(0));
+                    } else if (num < data.childrenAges.length) {
+                      newAges.splice(num);
+                    }
+                    setData({ ...data, numChildren: num, childrenAges: newAges.length > 0 ? newAges : [0] });
+                  }}
+                  aria-invalid={!!numChildrenError}
+                />
+                {numChildrenError && <FieldError>{numChildrenError}</FieldError>}
+              </Field>
 
               {data.numChildren > 0 && (
                 <div className="flex flex-wrap gap-3">
                   {Array.from({ length: data.numChildren }).map((_, i) => (
                     <div key={i} className="flex items-end gap-1.5">
-                      <Input
-                        label={`Wiek dziecia ${i + 1}`}
-                        type="number"
-                        min={0}
-                        max={99}
-                        value={data.childrenAges[i] ?? ""}
-                        onChange={(e) => {
-                          const val = parseInt(e.target.value, 10);
-                          const newAges = [...data.childrenAges];
-                          newAges[i] = isNaN(val) ? 0 : Math.max(0, Math.min(99, val));
-                          setData({ ...data, childrenAges: newAges });
-                        }}
-                        className="w-20"
-                      />
+                     <Field>
+                        <FieldLabel htmlFor={`child-age-${i}`} className="text-sm">
+                          Wiek dziecka {i + 1}
+                        </FieldLabel>
+                        <Input
+                          id={`child-age-${i}`}
+                          type="number"
+                          min={0}
+                          max={99}
+                          value={data.childrenAges[i] ?? ""}
+                          onChange={(e) => {
+                            const val = parseInt(e.target.value, 10);
+                            const newAges = [...data.childrenAges];
+                            newAges[i] = isNaN(val) ? 0 : Math.max(0, Math.min(99, val));
+                            setData({ ...data, childrenAges: newAges });
+                          }}
+                          className="w-20"
+                        />
+                      </Field>
                       {data.numChildren > 1 && (
                         <Button
                           type="button"
@@ -438,25 +471,29 @@ export default function RegisterPage() {
                 </Button>
               )}
 
-              <Input
-                label="Zainteresowania"
-                placeholder="Napisz i naciśnij Enter…"
-                value={interestInput}
-                onChange={(e) => setInterestInput(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    e.preventDefault();
-                    const trimmed = interestInput.trim();
-                    if (trimmed && !data.interests.includes(trimmed)) {
-                      setData({ ...data, interests: [...data.interests, trimmed] });
+              <Field data-invalid={!!interestsError}>
+                <FieldLabel htmlFor="interests">Zainteresowania</FieldLabel>
+                <Input
+                  id="interests"
+                  placeholder="Napisz i naciśnij Enter…"
+                  value={interestInput}
+                  onChange={(e) => setInterestInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      const trimmed = interestInput.trim();
+                      if (trimmed && !data.interests.includes(trimmed)) {
+                        setData({ ...data, interests: [...data.interests, trimmed] });
+                      }
+                      setInterestInput("");
+                    } else if (e.key === "Backspace" && !interestInput && data.interests.length > 0) {
+                      setData({ ...data, interests: data.interests.slice(0, -1) });
                     }
-                    setInterestInput("");
-                  } else if (e.key === "Backspace" && !interestInput && data.interests.length > 0) {
-                    setData({ ...data, interests: data.interests.slice(0, -1) });
-                  }
-                }}
-                error={errors.interests}
-              />
+                  }}
+                  aria-invalid={!!interestsError}
+                />
+                {interestsError && <FieldError>{interestsError}</FieldError>}
+              </Field>
               {data.interests.length > 0 && (
                 <div className="flex flex-wrap gap-1.5">
                   {data.interests.map((interest: string) => (
@@ -481,94 +518,120 @@ export default function RegisterPage() {
               )}
             </CardContent></Card>
 
+             <Card><CardContent className="pt-6">
+               <p className="text-sm font-medium mb-3">
+                 Kontakt do rodziny (minimum jeden)
+               </p>
+
+               <Field data-invalid={!!contactPhoneError}>
+                 <FieldLabel htmlFor="contactPhone">Numer telefonu</FieldLabel>
+                 <Input
+                   id="contactPhone"
+                   type="tel"
+                   placeholder="+48 123 456 789"
+                   value={data.contactPhone}
+                   onChange={(e) =>
+                     setData({ ...data, contactPhone: e.target.value })
+                   }
+                   aria-invalid={!!contactPhoneError}
+                   name="contactPhone"
+                   autoComplete="tel"
+                 />
+                 {contactPhoneError && <FieldError>{contactPhoneError}</FieldError>}
+               </Field>
+
+               <Field data-invalid={!!contactEmailError}>
+                 <FieldLabel htmlFor="contactEmail">Email</FieldLabel>
+                 <Input
+                   id="contactEmail"
+                   type="email"
+                   placeholder="rodzina@email.com"
+                   value={data.contactEmail}
+                   onChange={(e) =>
+                     setData({ ...data, contactEmail: e.target.value })
+                   }
+                   aria-invalid={!!contactEmailError}
+                   name="contactEmail"
+                   autoComplete="email"
+                 />
+                 {contactEmailError && <FieldError>{contactEmailError}</FieldError>}
+               </Field>
+
+               <Field>
+                 <FieldLabel htmlFor="contactFb">Profil Facebook (link)</FieldLabel>
+                 <Input
+                   id="contactFb"
+                   placeholder="https://facebook.com/..."
+                   value={data.contactFb}
+                   onChange={(e) =>
+                     setData({ ...data, contactFb: e.target.value })
+                   }
+                   name="contactFb"
+                   autoComplete="off"
+                 />
+               </Field>
+
+               <Field>
+                 <FieldLabel htmlFor="contactInstagram">Profil Instagram</FieldLabel>
+                 <Input
+                   id="contactInstagram"
+                   placeholder="@username"
+                   value={data.contactInstagram}
+                   onChange={(e) =>
+                     setData({ ...data, contactInstagram: e.target.value })
+                   }
+                   name="contactInstagram"
+                   autoComplete="off"
+                 />
+               </Field>
+
+                {errors.contact && (
+                  <p className="text-xs text-destructive">{errors.contact}</p>
+                )}
+              </CardContent></Card>
+
             <Card><CardContent className="pt-6">
-              <p className="text-sm font-medium mb-3">
-                Kontakt do rodziny (minimum jeden)
-              </p>
+              <Field data-invalid={!!cityError}>
+                <FieldLabel htmlFor="city">Miejscowość</FieldLabel>
+                <Input
+                  id="city"
+                  placeholder="Warszawa"
+                  value={data.city}
+                  onChange={(e) => setData({ ...data, city: e.target.value })}
+                  aria-invalid={!!cityError}
+                  name="city"
+                  autoComplete="address-line2"
+                />
+                {cityError && <FieldError>{cityError}</FieldError>}
+              </Field>
 
-               <Input
-                 label="Numer telefonu"
-                 type="tel"
-                 placeholder="+48 123 456 789"
-                 value={data.contactPhone}
-                 onChange={(e) =>
-                   setData({ ...data, contactPhone: e.target.value })
-                 }
-                 error={data.contactPhone ? getPhoneMessage(data.contactPhone) || errors.contactPhone : errors.contactPhone}
-                 name="contactPhone"
-                 autoComplete="tel"
-               />
+              <Field data-invalid={!!postalCodeError}>
+                <FieldLabel htmlFor="postalCode">Kod pocztowy</FieldLabel>
+                <Input
+                  id="postalCode"
+                  placeholder="XX-XXX"
+                  value={data.postalCode}
+                  onChange={(e) => setData({ ...data, postalCode: e.target.value })}
+                  aria-invalid={!!postalCodeError}
+                  name="postalCode"
+                  autoComplete="postal-code"
+                />
+                {postalCodeError && <FieldError>{postalCodeError}</FieldError>}
+              </Field>
 
-              <Input
-                label="Email"
-                type="email"
-                placeholder="rodzina@email.com"
-                value={data.contactEmail}
-                onChange={(e) =>
-                  setData({ ...data, contactEmail: e.target.value })
-                }
-                error={data.contactEmail ? getEmailMessage(data.contactEmail) || errors.contactEmail : errors.contactEmail}
-                name="contactEmail"
-                autoComplete="email"
-              />
-
-              <Input
-                label="Profil Facebook (link)"
-                placeholder="https://facebook.com/..."
-                value={data.contactFb}
-                onChange={(e) =>
-                  setData({ ...data, contactFb: e.target.value })
-                }
-                name="contactFb"
-                autoComplete="off"
-              />
-
-              <Input
-                label="Profil Instagram"
-                placeholder="@username"
-                value={data.contactInstagram}
-                onChange={(e) =>
-                  setData({ ...data, contactInstagram: e.target.value })
-                }
-                name="contactInstagram"
-                autoComplete="off"
-              />
-
-              {errors.contact && (
-                <p className="text-xs text-destructive">{errors.contact}</p>
-              )}
-            </CardContent></Card>
-
-            <Card><CardContent className="pt-6">
-              <Input
-                label="Miejscowość"
-                placeholder="Warszawa"
-                value={data.city}
-                onChange={(e) => setData({ ...data, city: e.target.value })}
-                error={errors.city}
-                name="city"
-                autoComplete="address-line2"
-              />
-
-              <Input
-                label="Kod pocztowy"
-                placeholder="XX-XXX"
-                value={data.postalCode}
-                onChange={(e) => setData({ ...data, postalCode: e.target.value })}
-                error={errors.postalCode}
-                name="postalCode"
-                autoComplete="postal-code"
-              />
-
-              <Select
-                label="Województwo"
-                options={VOIVODESHIPS.map((v) => ({ value: v, label: v }))}
-                value={data.voivodeship}
-                onChange={(value) => setData({ ...data, voivodeship: value })}
-                error={errors.voivodeship}
-                name="voivodeship"
-                placeholder="Wybierz województwo"
-              />
+              <Field data-invalid={!!voivodeshipError}>
+                <FieldLabel htmlFor="voivodeship">Województwo</FieldLabel>
+                <Select
+                  id="voivodeship"
+                  options={VOIVODESHIPS.map((v) => ({ value: v, label: v }))}
+                  value={data.voivodeship}
+                  onChange={(value) => setData({ ...data, voivodeship: value })}
+                  name="voivodeship"
+                  aria-invalid={!!voivodeshipError}
+                  placeholder="Wybierz województwo"
+                />
+                {voivodeshipError && <FieldError>{voivodeshipError}</FieldError>}
+              </Field>
             </CardContent></Card>
 
             <Card><CardContent className="pt-6">
@@ -621,49 +684,61 @@ export default function RegisterPage() {
           </div>
 
           <form noValidate onSubmit={handleSubmit} className="flex flex-col gap-6">
-            <Card><CardContent className="pt-6">
-              <p className="text-sm font-medium mb-3">
-                Dane logowania
-              </p>
+              <Card><CardContent className="pt-6">
+                <p className="text-sm font-medium mb-3">
+                  Dane logowania
+                </p>
 
-              <Input
-                label="Email"
-                type="email"
-                placeholder="email@example.com"
-                value={data.email}
-                onChange={(e) =>
-                  setData({ ...data, email: e.target.value })
-                }
-                error={data.email ? getEmailMessage(data.email) || errors.email : errors.email}
-                name="email"
-                autoComplete="email"
-              />
+                <Field data-invalid={!!emailError}>
+                  <FieldLabel htmlFor="email-part2">Email</FieldLabel>
+                  <Input
+                    id="email-part2"
+                    type="email"
+                    placeholder="email@example.com"
+                    value={data.email}
+                    onChange={(e) =>
+                      setData({ ...data, email: e.target.value })
+                    }
+                    aria-invalid={!!emailError}
+                    name="email"
+                    autoComplete="email"
+                  />
+                  {emailError && <FieldError>{emailError}</FieldError>}
+                </Field>
 
-              <Input
-                label="Hasło"
-                type="password"
-                placeholder="••••••••"
-                value={data.password}
-                onChange={(e) =>
-                  setData({ ...data, password: e.target.value })
-                }
-                error={errors.password}
-                name="password"
-                autoComplete="new-password"
-              />
+                <Field data-invalid={!!passwordError}>
+                  <FieldLabel htmlFor="password">Hasło</FieldLabel>
+                  <Input
+                    id="password"
+                    type="password"
+                    placeholder="••••••••"
+                    value={data.password}
+                    onChange={(e) =>
+                      setData({ ...data, password: e.target.value })
+                    }
+                    aria-invalid={!!passwordError}
+                    name="password"
+                    autoComplete="new-password"
+                  />
+                  {passwordError && <FieldError>{passwordError}</FieldError>}
+                </Field>
 
-              <Input
-                label="Powtórz hasło"
-                type="password"
-                placeholder="••••••••"
-                value={data.passwordConfirm}
-                onChange={(e) =>
-                  setData({ ...data, passwordConfirm: e.target.value })
-                }
-                error={errors.passwordConfirm}
-                name="password_confirm"
-                autoComplete="new-password"
-              />
+                <Field data-invalid={!!passwordConfirmError}>
+                  <FieldLabel htmlFor="passwordConfirm">Powtórz hasło</FieldLabel>
+                  <Input
+                    id="passwordConfirm"
+                    type="password"
+                    placeholder="••••••••"
+                    value={data.passwordConfirm}
+                    onChange={(e) =>
+                      setData({ ...data, passwordConfirm: e.target.value })
+                    }
+                    aria-invalid={!!passwordConfirmError}
+                    name="password_confirm"
+                    autoComplete="new-password"
+                  />
+                  {passwordConfirmError && <FieldError>{passwordConfirmError}</FieldError>}
+                </Field>
             </CardContent></Card>
 
             <Card><CardContent className="pt-6">
@@ -748,37 +823,35 @@ export default function RegisterPage() {
                 wysłaliśmy 6-cyfrowy kod potwierdzający. Wpisz go poniżej.
               </p>
 
-               <div className="space-y-2">
-                 <Label htmlFor="otp" className={errors.otp ? "text-destructive" : ""}>
-                   Kod potwierdzający
-                 </Label>
-                 <InputOTP
-                   id="otp"
-                   maxLength={6}
-                   value={otp}
-                   onChange={setOtp}
-                   disabled={submitting}
-                   inputMode="numeric"
-                   data-invalid={!!errors.otp}
-                   containerClassName="justify-center sm:justify-start"
-                   className="mx-auto sm:mx-0"
-                 >
-                   <InputOTPGroup>
-                     <InputOTPSlot index={0} />
-                     <InputOTPSlot index={1} />
-                     <InputOTPSlot index={2} />
-                   </InputOTPGroup>
-                   <InputOTPSeparator />
-                   <InputOTPGroup>
-                     <InputOTPSlot index={3} />
-                     <InputOTPSlot index={4} />
-                     <InputOTPSlot index={5} />
-                   </InputOTPGroup>
-                 </InputOTP>
-                 {errors.otp && (
-                   <p className="text-xs text-destructive">{errors.otp}</p>
-                 )}
-               </div>
+                <Field data-invalid={!!otpError} className="space-y-2">
+                  <FieldLabel htmlFor="otp" className={otpError ? "text-destructive" : ""}>
+                    Kod potwierdzający
+                  </FieldLabel>
+                  <InputOTP
+                    id="otp"
+                    maxLength={6}
+                    value={otp}
+                    onChange={setOtp}
+                    disabled={submitting}
+                    inputMode="numeric"
+                    data-invalid={!!otpError}
+                    containerClassName="justify-center sm:justify-start"
+                    className="mx-auto sm:mx-0"
+                  >
+                    <InputOTPGroup>
+                      <InputOTPSlot index={0} />
+                      <InputOTPSlot index={1} />
+                      <InputOTPSlot index={2} />
+                    </InputOTPGroup>
+                    <InputOTPSeparator />
+                    <InputOTPGroup>
+                      <InputOTPSlot index={3} />
+                      <InputOTPSlot index={4} />
+                      <InputOTPSlot index={5} />
+                    </InputOTPGroup>
+                  </InputOTP>
+                  {otpError && <FieldError>{otpError}</FieldError>}
+                </Field>
             </CardContent></Card>
 
             {errors.submit && (

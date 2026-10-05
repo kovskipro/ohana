@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
+import { Field, FieldLabel, FieldError } from "@/components/ui/field";
 
 import { Badge } from "@/components/ui/badge";
 
@@ -353,6 +354,12 @@ export default function EnrollPage() {
     }
   };
 
+  // Computed error values for live validation feedback
+  const parentFirstNameError = errors.parentFirstName;
+  const parentLastNameError = errors.parentLastName;
+  const parentPhoneError = errors.parentPhone;
+  const parentEmailError = errors.parentEmail;
+
   return (
     <main className="max-w-4xl mx-auto py-8">
       <div className="mb-6">
@@ -377,55 +384,77 @@ export default function EnrollPage() {
               Dane wspólne dla całego zapisu
             </p>
 
-            <Select
-              label="Rok szkolny"
-              options={SCHOOL_YEARS.map((y) => ({ value: y, label: y }))}
-              value={schoolYear}
-              onChange={setSchoolYear}
-            />
+            <Field>
+              <FieldLabel htmlFor="schoolYear">Rok szkolny</FieldLabel>
+              <Select
+                id="schoolYear"
+                options={SCHOOL_YEARS.map((y) => ({ value: y, label: y }))}
+                value={schoolYear}
+                onChange={setSchoolYear}
+              />
+            </Field>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Input
-                label="Imię rodzica"
-                placeholder="Jan"
-                value={parentFirstName}
-                onChange={(e) => setParentFirstName(e.target.value)}
-                error={errors.parentFirstName}
-              />
-              <Input
-                label="Nazwisko rodzica"
-                placeholder="Kowalski"
-                value={parentLastName}
-                onChange={(e) => setParentLastName(e.target.value)}
-                error={errors.parentLastName}
-              />
+              <Field data-invalid={!!parentFirstNameError}>
+                <FieldLabel htmlFor="parentFirstName">Imię rodzica</FieldLabel>
+                <Input
+                  id="parentFirstName"
+                  placeholder="Jan"
+                  value={parentFirstName}
+                  onChange={(e) => setParentFirstName(e.target.value)}
+                  aria-invalid={!!parentFirstNameError}
+                />
+                {parentFirstNameError && <FieldError>{parentFirstNameError}</FieldError>}
+              </Field>
+              <Field data-invalid={!!parentLastNameError}>
+                <FieldLabel htmlFor="parentLastName">Nazwisko rodzica</FieldLabel>
+                <Input
+                  id="parentLastName"
+                  placeholder="Kowalski"
+                  value={parentLastName}
+                  onChange={(e) => setParentLastName(e.target.value)}
+                  aria-invalid={!!parentLastNameError}
+                />
+                {parentLastNameError && <FieldError>{parentLastNameError}</FieldError>}
+              </Field>
             </div>
 
-            <Input
-              label="Numer telefonu"
-              type="tel"
-              placeholder="+48 123 456 789"
-              value={parentPhone}
-              onChange={(e) => setParentPhone(e.target.value)}
-              error={errors.parentPhone}
-              autoComplete="tel"
-            />
+            <Field data-invalid={!!parentPhoneError}>
+              <FieldLabel htmlFor="parentPhone">Numer telefonu</FieldLabel>
+              <Input
+                id="parentPhone"
+                type="tel"
+                placeholder="+48 123 456 789"
+                value={parentPhone}
+                onChange={(e) => setParentPhone(e.target.value)}
+                aria-invalid={!!parentPhoneError}
+                autoComplete="tel"
+              />
+              {parentPhoneError && <FieldError>{parentPhoneError}</FieldError>}
+            </Field>
 
-            <Input
-              label="Email"
-              type="email"
-              placeholder="email@example.com"
-              value={parentEmail}
-              onChange={(e) => setParentEmail(e.target.value)}
-              error={errors.parentEmail}
-            />
+            <Field data-invalid={!!parentEmailError}>
+              <FieldLabel htmlFor="parentEmail">Email</FieldLabel>
+              <Input
+                id="parentEmail"
+                type="email"
+                placeholder="email@example.com"
+                value={parentEmail}
+                onChange={(e) => setParentEmail(e.target.value)}
+                aria-invalid={!!parentEmailError}
+              />
+              {parentEmailError && <FieldError>{parentEmailError}</FieldError>}
+            </Field>
 
-            <Input
-              label="Link do profilu Facebook (opcjonalnie)"
-              placeholder="https://facebook.com/..."
-              value={parentFbLink}
-              onChange={(e) => setParentFbLink(e.target.value)}
-            />
+            <Field>
+              <FieldLabel htmlFor="parentFbLink">Link do profilu Facebook (opcjonalnie)</FieldLabel>
+              <Input
+                id="parentFbLink"
+                placeholder="https://facebook.com/..."
+                value={parentFbLink}
+                onChange={(e) => setParentFbLink(e.target.value)}
+              />
+            </Field>
           </CardContent>
         </Card>
 
@@ -464,13 +493,16 @@ export default function EnrollPage() {
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <Select
-                    label="Dziecko"
-                    options={childOptionsFor(card.key)}
-                    value={card.childId ?? ""}
-                    onChange={(v) => selectChildForCard(card.key, v)}
-                    placeholder="— nowe dziecko —"
-                  />
+                  <Field>
+                    <FieldLabel htmlFor={`child-select-${card.key}`}>Dziecko</FieldLabel>
+                    <Select
+                      id={`child-select-${card.key}`}
+                      options={childOptionsFor(card.key)}
+                      value={card.childId ?? ""}
+                      onChange={(v) => selectChildForCard(card.key, v)}
+                      placeholder="— nowe dziecko —"
+                    />
+                  </Field>
 
                   {card.childId ? (
                     <div className="space-y-1">
@@ -485,126 +517,189 @@ export default function EnrollPage() {
                   ) : (
                     <div className="space-y-4">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <Input
-                          label="Imię"
-                          placeholder="Jan"
-                          value={card.firstName}
-                          onChange={(e) =>
-                            updateCard(card.key, "firstName", e.target.value)
-                          }
-                          error={errors[`c${idx}firstName`]}
-                        />
-                        <Input
-                          label="Nazwisko"
-                          placeholder="Kowalski"
-                          value={card.lastName}
-                          onChange={(e) =>
-                            updateCard(card.key, "lastName", e.target.value)
-                          }
-                          error={errors[`c${idx}lastName`]}
-                        />
+                        <Field data-invalid={!!errors[`c${idx}firstName`]}>
+                          <FieldLabel htmlFor={`firstName-${card.key}`}>Imię</FieldLabel>
+                          <Input
+                            id={`firstName-${card.key}`}
+                            placeholder="Jan"
+                            value={card.firstName}
+                            onChange={(e) =>
+                              updateCard(card.key, "firstName", e.target.value)
+                            }
+                            aria-invalid={!!errors[`c${idx}firstName`]}
+                          />
+                          {errors[`c${idx}firstName`] && (
+                            <FieldError>{errors[`c${idx}firstName`]}</FieldError>
+                          )}
+                        </Field>
+                        <Field data-invalid={!!errors[`c${idx}lastName`]}>
+                          <FieldLabel htmlFor={`lastName-${card.key}`}>Nazwisko</FieldLabel>
+                          <Input
+                            id={`lastName-${card.key}`}
+                            placeholder="Kowalski"
+                            value={card.lastName}
+                            onChange={(e) =>
+                              updateCard(card.key, "lastName", e.target.value)
+                            }
+                            aria-invalid={!!errors[`c${idx}lastName`]}
+                          />
+                          {errors[`c${idx}lastName`] && (
+                            <FieldError>{errors[`c${idx}lastName`]}</FieldError>
+                          )}
+                        </Field>
                       </div>
 
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <Input
-                          label="Data urodzenia"
-                          type="date"
-                          value={card.birthDate}
-                          onChange={(e) =>
-                            updateCard(card.key, "birthDate", e.target.value)
-                          }
-                          error={errors[`c${idx}birthDate`]}
-                        />
-                        <Input
-                          label="Miejsce urodzenia"
-                          placeholder="Warszawa"
-                          value={card.birthPlace}
-                          onChange={(e) =>
-                            updateCard(card.key, "birthPlace", e.target.value)
-                          }
-                          error={errors[`c${idx}birthPlace`]}
-                        />
+                        <Field data-invalid={!!errors[`c${idx}birthDate`]}>
+                          <FieldLabel htmlFor={`birthDate-${card.key}`}>Data urodzenia</FieldLabel>
+                          <Input
+                            id={`birthDate-${card.key}`}
+                            type="date"
+                            value={card.birthDate}
+                            onChange={(e) =>
+                              updateCard(card.key, "birthDate", e.target.value)
+                            }
+                            aria-invalid={!!errors[`c${idx}birthDate`]}
+                          />
+                          {errors[`c${idx}birthDate`] && (
+                            <FieldError>{errors[`c${idx}birthDate`]}</FieldError>
+                          )}
+                        </Field>
+                        <Field data-invalid={!!errors[`c${idx}birthPlace`]}>
+                          <FieldLabel htmlFor={`birthPlace-${card.key}`}>Miejsce urodzenia</FieldLabel>
+                          <Input
+                            id={`birthPlace-${card.key}`}
+                            placeholder="Warszawa"
+                            value={card.birthPlace}
+                            onChange={(e) =>
+                              updateCard(card.key, "birthPlace", e.target.value)
+                            }
+                            aria-invalid={!!errors[`c${idx}birthPlace`]}
+                          />
+                          {errors[`c${idx}birthPlace`] && (
+                            <FieldError>{errors[`c${idx}birthPlace`]}</FieldError>
+                          )}
+                        </Field>
                       </div>
 
-                      <Input
-                        label="PESEL"
-                        placeholder="11111111111"
-                        value={card.pesel}
-                        onChange={(e) => {
-                          const val = e.target.value.replace(/\D/g, "").slice(0, 11);
-                          updateCard(card.key, "pesel", val);
-                        }}
-                        error={errors[`c${idx}pesel`]}
-                      />
+                      <Field data-invalid={!!errors[`c${idx}pesel`]}>
+                        <FieldLabel htmlFor={`pesel-${card.key}`}>PESEL</FieldLabel>
+                        <Input
+                          id={`pesel-${card.key}`}
+                          placeholder="11111111111"
+                          value={card.pesel}
+                          onChange={(e) => {
+                            const val = e.target.value.replace(/\D/g, "").slice(0, 11);
+                            updateCard(card.key, "pesel", val);
+                          }}
+                          aria-invalid={!!errors[`c${idx}pesel`]}
+                        />
+                        {errors[`c${idx}pesel`] && (
+                          <FieldError>{errors[`c${idx}pesel`]}</FieldError>
+                        )}
+                      </Field>
                     </div>
                   )}
 
-                  <Select
-                    label="Klasa"
-                    options={SCHOOL_CLASSES.map((c) => ({
-                      value: c,
-                      label: c,
-                    }))}
-                    value={card.schoolClass}
-                    onChange={(value) =>
-                      updateCard(card.key, "schoolClass", value)
-                    }
-                    placeholder="Nie zgłaszam"
-                  />
+                  <Field>
+                    <FieldLabel htmlFor={`schoolClass-${card.key}`}>Klasa</FieldLabel>
+                    <Select
+                      id={`schoolClass-${card.key}`}
+                      options={SCHOOL_CLASSES.map((c) => ({
+                        value: c,
+                        label: c,
+                      }))}
+                      value={card.schoolClass}
+                      onChange={(value) =>
+                        updateCard(card.key, "schoolClass", value)
+                      }
+                      placeholder="Nie zgłaszam"
+                    />
+                  </Field>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <Input
-                        label="Ulica"
-                        placeholder="ul. Główna"
-                        value={card.street}
-                        onChange={(e) =>
-                          updateCard(card.key, "street", e.target.value)
-                        }
-                        error={errors[`c${idx}street`]}
-                      />
-                      <Input
-                        label="Numer domu"
-                        placeholder="10"
-                        value={card.houseNumber}
-                        onChange={(e) =>
-                          updateCard(card.key, "houseNumber", e.target.value)
-                        }
-                        error={errors[`c${idx}houseNumber`]}
-                      />
+                      <Field data-invalid={!!errors[`c${idx}street`]}>
+                        <FieldLabel htmlFor={`street-${card.key}`}>Ulica</FieldLabel>
+                        <Input
+                          id={`street-${card.key}`}
+                          placeholder="ul. Główna"
+                          value={card.street}
+                          onChange={(e) =>
+                            updateCard(card.key, "street", e.target.value)
+                          }
+                          aria-invalid={!!errors[`c${idx}street`]}
+                        />
+                        {errors[`c${idx}street`] && (
+                          <FieldError>{errors[`c${idx}street`]}</FieldError>
+                        )}
+                      </Field>
+                      <Field data-invalid={!!errors[`c${idx}houseNumber`]}>
+                        <FieldLabel htmlFor={`houseNumber-${card.key}`}>Numer domu</FieldLabel>
+                        <Input
+                          id={`houseNumber-${card.key}`}
+                          placeholder="10"
+                          value={card.houseNumber}
+                          onChange={(e) =>
+                            updateCard(card.key, "houseNumber", e.target.value)
+                          }
+                          aria-invalid={!!errors[`c${idx}houseNumber`]}
+                        />
+                        {errors[`c${idx}houseNumber`] && (
+                          <FieldError>{errors[`c${idx}houseNumber`]}</FieldError>
+                        )}
+                      </Field>
                     </div>
 
                     <div>
-                      <Input
-                        label="Miejscowość"
-                        placeholder="Warszawa"
-                        value={card.city}
-                        onChange={(e) =>
-                          updateCard(card.key, "city", e.target.value)
-                        }
-                        error={errors[`c${idx}city`]}
-                      />
-                      <Input
-                        label="Kod pocztowy"
-                        placeholder="XX-XXX"
-                        value={card.postalCode}
-                        onChange={(e) =>
-                          updateCard(card.key, "postalCode", e.target.value)
-                        }
-                        error={errors[`c${idx}postalCode`]}
-                      />
-                      <Select
-                        label="Województwo"
-                        options={VOIVODESHIPS.map((v) => ({
-                          value: v,
-                          label: v,
-                        }))}
-                        value={card.voivodeship}
-                        onChange={(value) =>
-                          updateCard(card.key, "voivodeship", value)
-                        }
-                        error={errors[`c${idx}voivodeship`]}
-                      />
+                      <Field data-invalid={!!errors[`c${idx}city`]}>
+                        <FieldLabel htmlFor={`city-${card.key}`}>Miejscowość</FieldLabel>
+                        <Input
+                          id={`city-${card.key}`}
+                          placeholder="Warszawa"
+                          value={card.city}
+                          onChange={(e) =>
+                            updateCard(card.key, "city", e.target.value)
+                          }
+                          aria-invalid={!!errors[`c${idx}city`]}
+                        />
+                        {errors[`c${idx}city`] && (
+                          <FieldError>{errors[`c${idx}city`]}</FieldError>
+                        )}
+                      </Field>
+                      <Field data-invalid={!!errors[`c${idx}postalCode`]}>
+                        <FieldLabel htmlFor={`postalCode-${card.key}`}>Kod pocztowy</FieldLabel>
+                        <Input
+                          id={`postalCode-${card.key}`}
+                          placeholder="XX-XXX"
+                          value={card.postalCode}
+                          onChange={(e) =>
+                            updateCard(card.key, "postalCode", e.target.value)
+                          }
+                          aria-invalid={!!errors[`c${idx}postalCode`]}
+                        />
+                        {errors[`c${idx}postalCode`] && (
+                          <FieldError>{errors[`c${idx}postalCode`]}</FieldError>
+                        )}
+                      </Field>
+                      <Field data-invalid={!!errors[`c${idx}voivodeship`]}>
+                        <FieldLabel htmlFor={`voivodeship-${card.key}`}>Województwo</FieldLabel>
+                        <Select
+                          id={`voivodeship-${card.key}`}
+                          options={VOIVODESHIPS.map((v) => ({
+                            value: v,
+                            label: v,
+                          }))}
+                          value={card.voivodeship}
+                          onChange={(value) =>
+                            updateCard(card.key, "voivodeship", value)
+                          }
+                          aria-invalid={!!errors[`c${idx}voivodeship`]}
+                        />
+                        {errors[`c${idx}voivodeship`] && (
+                          <FieldError>{errors[`c${idx}voivodeship`]}</FieldError>
+                        )}
+                      </Field>
                     </div>
                   </div>
                 </CardContent>

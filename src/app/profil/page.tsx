@@ -24,7 +24,7 @@ import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
-import { Label } from "@/components/ui/label";
+import { Field, FieldLabel, FieldError } from "@/components/ui/field";
 import { Plus, Trash2, X } from "lucide-react";
 import {
   Dialog,
@@ -418,13 +418,26 @@ export default function ProfilePage() {
     void setMapVisibility(true);
   };
 
-  if (loading || !form || !profile) {
+   if (loading || !form || !profile) {
     return (
       <main className="py-8">
         <p className="text-muted-foreground">Wczytywanie...</p>
       </main>
     );
   }
+
+  // Computed error values for live validation feedback
+  const profileNameError = errors.profileName;
+  const numChildrenError = errors.numChildren;
+  const contactPhoneError = form.contactPhone
+    ? getPhoneMessage(form.contactPhone) || errors.contactPhone
+    : errors.contactPhone;
+  const contactEmailError = form.contactEmail
+    ? getEmailMessage(form.contactEmail) || errors.contactEmail
+    : errors.contactEmail;
+  const cityError = errors.city;
+  const postalCodeError = errors.postalCode;
+  const voivodeshipError = errors.voivodeship;
 
   return (
     <main className="max-w-2xl mx-auto py-8 space-y-6">
@@ -523,224 +536,258 @@ export default function ProfilePage() {
           <CardHeader>
             <CardTitle>Dane podstawowe</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <Input
-              label="Nazwa profilu (np. Kossakowscy)"
-              placeholder="Nazwa rodziny"
-              value={form.profileName}
-              onChange={(e) => setForm({ ...form, profileName: e.target.value })}
-              error={errors.profileName}
-            />
+            <CardContent className="space-y-4">
+              <Field data-invalid={!!profileNameError}>
+                <FieldLabel htmlFor="profileName">Nazwa profilu (np. Kossakowscy)</FieldLabel>
+                <Input
+                  id="profileName"
+                  placeholder="Nazwa rodziny"
+                  value={form.profileName}
+                  onChange={(e) => setForm({ ...form, profileName: e.target.value })}
+                  aria-invalid={!!profileNameError}
+                />
+                {profileNameError && <FieldError>{profileNameError}</FieldError>}
+              </Field>
 
-            <Input
-              label="Liczba dzieci"
-              type="number"
-              min={0}
-              max={20}
-              value={form.numChildren}
-              onChange={(e) => {
-                const num = Math.max(0, Math.min(20, parseInt(e.target.value, 10) || 0));
-                const newAges = [...form.childrenAges];
-                if (num > form.childrenAges.length) {
-                  newAges.push(...Array(num - form.childrenAges.length).fill(0));
-                } else if (num < form.childrenAges.length) {
-                  newAges.splice(num);
-                }
-                setForm({ ...form, numChildren: num, childrenAges: newAges.length > 0 ? newAges : [0] });
-              }}
-              error={errors.numChildren}
-            />
+              <Field data-invalid={!!numChildrenError}>
+                <FieldLabel htmlFor="numChildren">Liczba dzieci</FieldLabel>
+                <Input
+                  id="numChildren"
+                  type="number"
+                  min={0}
+                  max={20}
+                  value={form.numChildren}
+                  onChange={(e) => {
+                    const num = Math.max(0, Math.min(20, parseInt(e.target.value, 10) || 0));
+                    const newAges = [...form.childrenAges];
+                    if (num > form.childrenAges.length) {
+                      newAges.push(...Array(num - form.childrenAges.length).fill(0));
+                    } else if (num < form.childrenAges.length) {
+                      newAges.splice(num);
+                    }
+                    setForm({ ...form, numChildren: num, childrenAges: newAges.length > 0 ? newAges : [0] });
+                  }}
+                  aria-invalid={!!numChildrenError}
+                />
+                {numChildrenError && <FieldError>{numChildrenError}</FieldError>}
+              </Field>
 
-            {form.numChildren > 0 && (
-              <div className="flex flex-wrap gap-3">
-                {Array.from({ length: form.numChildren }).map((_, i) => (
-                  <div key={i} className="flex items-end gap-1.5">
-                    <Input
-                      label={`Wiek dziecka ${i + 1}`}
-                      type="number"
-                      min={0}
-                      max={99}
-                      value={form.childrenAges[i] ?? ""}
-                      onChange={(e) => {
-                        const val = parseInt(e.target.value, 10);
-                        const newAges = [...form.childrenAges];
-                        newAges[i] = isNaN(val) ? 0 : Math.max(0, Math.min(99, val));
-                        setForm({ ...form, childrenAges: newAges });
-                      }}
-                      className="w-20"
-                    />
-                    {form.numChildren > 1 && (
-                      <Button
+              {form.numChildren > 0 && (
+                <div className="flex flex-wrap gap-3">
+                  {Array.from({ length: form.numChildren }).map((_, i) => (
+                    <div key={i} className="flex items-end gap-1.5">
+                      <Field>
+                        <FieldLabel htmlFor={`child-age-${i}`} className="text-sm">
+                          Wiek dziecka {i + 1}
+                        </FieldLabel>
+                        <Input
+                          id={`child-age-${i}`}
+                          type="number"
+                          min={0}
+                          max={99}
+                          value={form.childrenAges[i] ?? ""}
+                          onChange={(e) => {
+                            const val = parseInt(e.target.value, 10);
+                            const newAges = [...form.childrenAges];
+                            newAges[i] = isNaN(val) ? 0 : Math.max(0, Math.min(99, val));
+                            setForm({ ...form, childrenAges: newAges });
+                          }}
+                          className="w-20"
+                        />
+                      </Field>
+                      {form.numChildren > 1 && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="xs"
+                          onClick={() => {
+                            const newAges = [...form.childrenAges];
+                            newAges.splice(i, 1);
+                            setForm({
+                              ...form,
+                              numChildren: form.numChildren - 1,
+                              childrenAges: newAges.length > 0 ? newAges : [0],
+                            });
+                          }}
+                          aria-label={`Usuń dziecko ${i + 1}`}
+                        >
+                          <Trash2 className="size-3" />
+                        </Button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {form.numChildren > 0 && form.numChildren < 20 && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setForm({
+                      ...form,
+                      numChildren: form.numChildren + 1,
+                      childrenAges: [...form.childrenAges, 0],
+                    });
+                  }}
+                >
+                  <Plus className="size-4" />
+                  Dodaj dziecko
+                </Button>
+              )}
+
+              <Field>
+                <FieldLabel htmlFor="interests">Zainteresowania</FieldLabel>
+                <Input
+                  id="interests"
+                  placeholder="Napisz i naciśnij Enter…"
+                  value={interestInput}
+                  onChange={(e) => setInterestInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      const trimmed = interestInput.trim();
+                      if (trimmed && !form.interests.includes(trimmed)) {
+                        setForm({ ...form, interests: [...form.interests, trimmed] });
+                      }
+                      setInterestInput("");
+                    } else if (e.key === "Backspace" && !interestInput && form.interests.length > 0) {
+                      setForm({ ...form, interests: form.interests.slice(0, -1) });
+                    }
+                  }}
+                />
+              </Field>
+              {form.interests.length > 0 && (
+                <div className="flex flex-wrap gap-1.5">
+                  {form.interests.map((interest: string) => (
+                    <Badge key={interest} variant="secondary" className="text-xs">
+                      {interest}
+                      <button
                         type="button"
-                        variant="ghost"
-                        size="xs"
-                        onClick={() => {
-                          const newAges = [...form.childrenAges];
-                          newAges.splice(i, 1);
+                        onClick={() =>
                           setForm({
                             ...form,
-                            numChildren: form.numChildren - 1,
-                            childrenAges: newAges.length > 0 ? newAges : [0],
-                          });
-                        }}
-                        aria-label={`Usuń dziecko ${i + 1}`}
+                            interests: form.interests.filter((i: string) => i !== interest),
+                          })
+                        }
+                        className="ml-1 rounded-full p-0.5 hover:bg-muted-foreground/20"
+                        aria-label={`Usuń ${interest}`}
                       >
-                        <Trash2 className="size-3" />
-                      </Button>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {form.numChildren > 0 && form.numChildren < 20 && (
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  setForm({
-                    ...form,
-                    numChildren: form.numChildren + 1,
-                    childrenAges: [...form.childrenAges, 0],
-                  });
-                }}
-              >
-                <Plus className="size-4" />
-                Dodaj dziecko
-              </Button>
-            )}
-
-            <Input
-              label="Zainteresowania"
-              placeholder="Napisz i naciśnij Enter…"
-              value={interestInput}
-              onChange={(e) => setInterestInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  const trimmed = interestInput.trim();
-                  if (trimmed && !form.interests.includes(trimmed)) {
-                    setForm({ ...form, interests: [...form.interests, trimmed] });
-                  }
-                  setInterestInput("");
-                } else if (e.key === "Backspace" && !interestInput && form.interests.length > 0) {
-                  setForm({ ...form, interests: form.interests.slice(0, -1) });
-                }
-              }}
-            />
-            {form.interests.length > 0 && (
-              <div className="flex flex-wrap gap-1.5">
-                {form.interests.map((interest: string) => (
-                  <Badge key={interest} variant="secondary" className="text-xs">
-                    {interest}
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setForm({
-                          ...form,
-                          interests: form.interests.filter((i: string) => i !== interest),
-                        })
-                      }
-                      className="ml-1 rounded-full p-0.5 hover:bg-muted-foreground/20"
-                      aria-label={`Usuń ${interest}`}
-                    >
-                      <X className="size-3" />
-                    </button>
-                  </Badge>
-                ))}
-              </div>
-            )}
-          </CardContent>
+                        <X className="size-3" />
+                      </button>
+                    </Badge>
+                  ))}
+                </div>
+              )}
+            </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
             <CardTitle>Kontakt do rodziny (minimum jeden)</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <Input
-              label="Numer telefonu"
-              type="tel"
-              placeholder="+48 123 456 789"
-              value={form.contactPhone}
-              onChange={(e) =>
-                setForm({ ...form, contactPhone: e.target.value })
-              }
-              error={
-                form.contactPhone
-                  ? getPhoneMessage(form.contactPhone) || errors.contactPhone
-                  : errors.contactPhone
-              }
-              autoComplete="tel"
-            />
+            <CardContent className="space-y-4">
+              <Field data-invalid={!!contactPhoneError}>
+                <FieldLabel htmlFor="contactPhone">Numer telefonu</FieldLabel>
+                <Input
+                  id="contactPhone"
+                  type="tel"
+                  placeholder="+48 123 456 789"
+                  value={form.contactPhone}
+                  onChange={(e) =>
+                    setForm({ ...form, contactPhone: e.target.value })
+                  }
+                  aria-invalid={!!contactPhoneError}
+                  autoComplete="tel"
+                />
+                {contactPhoneError && <FieldError>{contactPhoneError}</FieldError>}
+              </Field>
 
-            <Input
-              label="Email"
-              type="email"
-              placeholder="rodzina@email.com"
-              value={form.contactEmail}
-              onChange={(e) =>
-                setForm({ ...form, contactEmail: e.target.value })
-              }
-              error={
-                form.contactEmail
-                  ? getEmailMessage(form.contactEmail) || errors.contactEmail
-                  : errors.contactEmail
-              }
-            />
+              <Field data-invalid={!!contactEmailError}>
+                <FieldLabel htmlFor="contactEmail">Email</FieldLabel>
+                <Input
+                  id="contactEmail"
+                  type="email"
+                  placeholder="rodzina@email.com"
+                  value={form.contactEmail}
+                  onChange={(e) =>
+                    setForm({ ...form, contactEmail: e.target.value })
+                  }
+                  aria-invalid={!!contactEmailError}
+                />
+                {contactEmailError && <FieldError>{contactEmailError}</FieldError>}
+              </Field>
 
-            <Input
-              label="Profil Facebook (link)"
-              placeholder="https://facebook.com/..."
-              value={form.contactFb}
-              onChange={(e) => setForm({ ...form, contactFb: e.target.value })}
-            />
+              <Field>
+                <FieldLabel htmlFor="contactFb">Profil Facebook (link)</FieldLabel>
+                <Input
+                  id="contactFb"
+                  placeholder="https://facebook.com/..."
+                  value={form.contactFb}
+                  onChange={(e) => setForm({ ...form, contactFb: e.target.value })}
+                />
+              </Field>
 
-            <Input
-              label="Profil Instagram"
-              placeholder="@username"
-              value={form.contactInstagram}
-              onChange={(e) =>
-                setForm({ ...form, contactInstagram: e.target.value })
-              }
-            />
+              <Field>
+                <FieldLabel htmlFor="contactInstagram">Profil Instagram</FieldLabel>
+                <Input
+                  id="contactInstagram"
+                  placeholder="@username"
+                  value={form.contactInstagram}
+                  onChange={(e) =>
+                    setForm({ ...form, contactInstagram: e.target.value })
+                  }
+                />
+              </Field>
 
-            {errors.contact && (
-              <p className="text-xs text-destructive">{errors.contact}</p>
-            )}
-          </CardContent>
+              {errors.contact && (
+                <p className="text-xs text-destructive">{errors.contact}</p>
+              )}
+            </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
             <CardTitle>Adres</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <Input
-              label="Miejscowość"
-              placeholder="Warszawa"
-              value={form.city}
-              onChange={(e) => setForm({ ...form, city: e.target.value })}
-              error={errors.city}
-            />
+            <CardContent className="space-y-4">
+              <Field data-invalid={!!cityError}>
+                <FieldLabel htmlFor="city">Miejscowość</FieldLabel>
+                <Input
+                  id="city"
+                  placeholder="Warszawa"
+                  value={form.city}
+                  onChange={(e) => setForm({ ...form, city: e.target.value })}
+                  aria-invalid={!!cityError}
+                />
+                {cityError && <FieldError>{cityError}</FieldError>}
+              </Field>
 
-            <Input
-              label="Kod pocztowy"
-              placeholder="XX-XXX"
-              value={form.postalCode}
-              onChange={(e) => setForm({ ...form, postalCode: e.target.value })}
-              error={errors.postalCode}
-            />
+              <Field data-invalid={!!postalCodeError}>
+                <FieldLabel htmlFor="postalCode">Kod pocztowy</FieldLabel>
+                <Input
+                  id="postalCode"
+                  placeholder="XX-XXX"
+                  value={form.postalCode}
+                  onChange={(e) => setForm({ ...form, postalCode: e.target.value })}
+                  aria-invalid={!!postalCodeError}
+                />
+                {postalCodeError && <FieldError>{postalCodeError}</FieldError>}
+              </Field>
 
-            <Select
-              label="Województwo"
-              options={VOIVODESHIPS.map((v) => ({ value: v, label: v }))}
-              value={form.voivodeship}
-              onChange={(value) => setForm({ ...form, voivodeship: value })}
-              error={errors.voivodeship}
-            />
-          </CardContent>
+              <Field data-invalid={!!voivodeshipError}>
+                <FieldLabel htmlFor="voivodeship">Województwo</FieldLabel>
+                <Select
+                  id="voivodeship"
+                  options={VOIVODESHIPS.map((v) => ({ value: v, label: v }))}
+                  value={form.voivodeship}
+                  onChange={(value) => setForm({ ...form, voivodeship: value })}
+                  aria-invalid={!!voivodeshipError}
+                />
+                {voivodeshipError && <FieldError>{voivodeshipError}</FieldError>}
+              </Field>
+            </CardContent>
         </Card>
 
         <Button
