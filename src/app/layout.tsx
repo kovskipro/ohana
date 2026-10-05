@@ -1,17 +1,7 @@
 import type { Metadata } from "next";
-import { Inter, Playfair_Display } from "next/font/google";
+import { GeistSans } from "geist/font/sans";
 import "@/app/globals.css";
 import { Navbar } from "@/components/navbar";
-
-const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-sans",
-});
-
-const playfair = Playfair_Display({
-  subsets: ["latin"],
-  variable: "--font-heading",
-});
 
 export const metadata: Metadata = {
   title: "Ohana | Kooperatywa Edukacyjna",
@@ -24,7 +14,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="pl" className={`${inter.variable} ${playfair.variable}`}>
+    <html lang="pl" className={`${GeistSans.variable} dark`}>
       <body className="min-h-screen bg-background text-foreground font-sans antialiased">
         <Navbar />
         <main className="container mx-auto px-4 py-6">
